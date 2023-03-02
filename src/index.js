@@ -6,7 +6,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import {getFocusedRouteNameFromRoute, NavigationContainer, useTheme} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {StyleSheet, Image, View, Text, StatusBar, useColorScheme} from 'react-native';
+import {StyleSheet, Image, View, Text, StatusBar, useColorScheme, Dimensions} from 'react-native';
+import English from './assets/english.png';
+import Chinese from './assets/chinese.png';
+import Deutsch from './assets/deutsch.png';
+import Japanese from './assets/japanese.png';
+import Spanish from './assets/spanish.png';
 
 
 import TabComponent from './components/Tab';
@@ -19,16 +24,33 @@ const Logo = require('./assets/logo.png');
 import i18n from './languages/i18n';
 import Ripple from './components/Ripple';
 import { ThemeContext } from './components/ThemeProvider';
+import { useStateValue } from './services/State/State';
+import { fontFamilies } from './utils/FontFamilies';
+import Setting from './screens/Setting';
+import { createDrawerNavigator, DrawerItemList, DrawerToggleButton } from '@react-navigation/drawer';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
+import { Icon } from 'react-native-elements';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import PDUList from './screens/PDUList';
+const { width } = Dimensions.get("window");
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const Drawer = createDrawerNavigator();
+
+ 
 
 const RootStack = () => {
     const {theme} = useContext(ThemeContext);
 
     const profileIcon = (navigation, showDetail = true) => {
         return (<></>);
-      }
+    }
+
+    const addDevice = (navigation) => {
+    }
 
     const onRightButtonPress = (navigation) => {
     }
@@ -58,7 +80,6 @@ const RootStack = () => {
           shadowOpacity: 0,
           elevation: isTransparent ? 0 : 4,
           backgroundColor: isTransparent ? 'transparent' : theme.dark? theme.colors.background : theme.COLORS.WHITE,
-          justifyContent: 'flex-start',
           height:80,
         },
         headerLeftContainerStyle: {
@@ -78,7 +99,7 @@ const RootStack = () => {
               </Ripple>
             )
           : showAppIcon
-          ? () => <Image src={Logo} style={styles(theme).logo} />
+          ? () => <Image source={Logo} style={styles(theme).logo}  resizeMode={'contain'} />
           //<Logo style={styles(theme).logo} />: <Logo style={styles(theme).logo} />
           : null,
         headerRight: rightButtonIcon ? () => (
@@ -89,7 +110,154 @@ const RootStack = () => {
           : null,
     });
 
+    const DrawerNavigator = () => {
+      return (
+        <Drawer.Navigator
+          initialRouteName='Dashboard'
+          drawerContent={(props) => <CustomDrawerNavigation {...props} />}
+          screenOptions={{
+            drawerPosition: 'right',
+            headerTitleAlign: 'center',
+            headerStyle: {
+              shadowOpacity: 0,
+              elevation: 4,
+              backgroundColor: theme.dark? theme.colors.background : theme.COLORS.WHITE,
+              height:80,
+            },
+            headerLeftContainerStyle: {
+              marginLeft: 20,
+            },
+            headerRightContainerStyle: {
+              marginRight: 20,
+            },
+            headerTitleStyle:styles(theme).headerTitleStyle,
+            headerLeft: ()=><Image source={Logo} style={styles(theme).logo}  resizeMode={'contain'} />,
+            headerRight: () => <DrawerToggleButton tintColor='white' />,
+            drawerOpenRoute: 'DrawerOpen',
+            drawerCloseRoute: 'DrawerClose',
+            drawerToggleRoute: 'DrawerToggle',
+            drawerWidth: (width / 3) * 2
+          }}
+        >
+          <Drawer.Screen
+            name="Dashboard"
+            component={Dashboard}
+          />
+          <Drawer.Screen
+            name="PDU List"
+            component={PDUList}
+          />
+        </Drawer.Navigator>
+  
+      );
+    }
+  
+    const CustomDrawerNavigation = (props) => {
+      return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+          <View style={{ height: 250, backgroundColor: '#d2d2d2', opacity: 0.9 }}>
+            <View style={{ height: 200, backgroundColor: 'Green', alignItems: 'center', justifyContent: 'center' }}>
+              <Image source={Logo} style={{ width: 150 }} resizeMode={'contain'} />
+            </View>
+          </View>
+          <ScrollView>
+            <DrawerItemList {...props} />
+          </ScrollView>
+          <View style={{ alignItems: "center", bottom: 20 }}>
+            <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'column', marginRight: 15 }}>
+                <Icon name="flask" style={{ fontSize: 24 }} onPress={() => console.log("Tıkladın")} />
+              </View>
+              <View style={{ flexDirection: 'column' }}>
+                <Icon name="call" style={{ fontSize: 24 }} onPress={() => console.log("Tıkladın")} />
+              </View>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    const SettingStack = () => {
+      const [{selectedLanguage}, dispatch] = useStateValue();
+
+      return (
+        <Stack.Navigator>
+            <Stack.Screen
+                name="Setting"
+                component={Setting}
+                options={({navigation}) => {
+                    return Header(
+                    {
+                        title: i18n.t('Setting'),
+                        // isTransparent: true,
+                        // showLanguageDropdown: true,
+                        showRightButton:false,
+                        dispatch,
+                        showAppIcon: true,
+                    },
+                    navigation,);
+                  }}
+                />
+        </Stack.Navigator>
+    );
+    }
+
+    const DevicesStack = () => {
+      const [{}, dispatch] = useStateValue();
+
+      return (
+        <Stack.Navigator>
+        <Stack.Screen
+            name="Devices"
+            component={PDUList}
+            options={({navigation}) => {
+                return Header(
+                {
+                    title: i18n.t('Devices'),
+                    dispatch,
+                    showRightButton: true,
+                    rightButtonIcon: (<MaterialIcons name='add' size={24} color={'white'} />),
+                    rightButtonOnPress: addDevice,
+                    showAppIcon: true,
+                },
+                navigation,);
+              }}
+            />
+    </Stack.Navigator>
+      );
+    }
+
     const DashboardStack = () => {
+      const languageOptions = [
+        {
+          icon: English,
+          label: i18n.t('landing.english'),
+          value: 'en',
+        },
+        {
+          icon: Chinese,
+          label: i18n.t('landing.chinese'),
+          value: 'zh',
+        },
+        {
+          icon: Deutsch,
+          label: i18n.t('landing.deutsch'),
+          value: 'de',
+        },
+        {
+          icon: Japanese,
+          label: i18n.t('landing.japanese'),
+          value: 'ja',
+        },
+        {
+          icon: Spanish,
+          label: i18n.t('landing.spanish'),
+          value: 'es',
+        },
+      ];
+      const [{selectedLanguage}, dispatch] = useStateValue();
+      const language = languageOptions.find((l) => l.value === selectedLanguage);
+    
         return (
             <Stack.Navigator>
                 <Stack.Screen
@@ -98,7 +266,7 @@ const RootStack = () => {
                     options={({navigation}) => {
                         return Header(
                         {
-                            title: i18n.t(''),
+                            title: i18n.t('Dashboard'),
                             // isTransparent: true,
                             // showLanguageDropdown: true,
                             showRightButton:false,
@@ -119,27 +287,53 @@ const RootStack = () => {
     const BottomTabs = ({navigation}) => {
         return (
             <Tab.Navigator
-                tabBarOptions={{
-                    style: {
-                    display: showWalkthrough ? 'none' : 'flex',
-                    zIndex: 1,
-                    height: 80,
-                    backgroundColor: theme.dark ? theme.colors.background : theme.COLORS.WHITE,
-                    elevation: 3,
-                    borderTopWidth: 0,
-                    shadowOpacity: 0.5,
-                    paddingBottom: 25,
-                    paddingVertical: 20,
-                    },
-                }}
+              screenOptions={{
+                
+                //activeTintColor: '#F60081',
+                tabBarStyle: {
+                  display: 'flex',
+                  zIndex: 1,
+                  height: 80,
+                  backgroundColor: theme.dark ? theme.colors.background : theme.COLORS.WHITE,
+                  elevation: 3,
+                  shadowOpacity: 0.5,
+                  paddingBottom: 25,
+                  paddingVertical: 20,
+              }
+            }}
             >
                 <Tab.Screen
-                    name="Dashboard"
+                    name="DashboardPage"
+                    //component={DrawerNavigator}
                     component={DashboardStack}
                     options={{
+                      headerShown: false,
+                      unmountOnBlur: true,
+                      tabBarButton: (props) => (
+                          <TabComponent label="Dashboard" {...props} />
+                      ),
+                    }}
+                />
+                <Tab.Screen
+                    name="Devices"
+                    //component={DrawerNavigator}
+                    component={DevicesStack}
+                    options={{
+                      headerShown: false,
+                      unmountOnBlur: true,
+                      tabBarButton: (props) => (
+                          <TabComponent label="Devices" {...props} />
+                      ),
+                    }}
+                />
+                <Tab.Screen
+                  name="Setting"
+                  component={SettingStack}
+                  options={{
+                    headerShown: false,
                     unmountOnBlur: true,
                     tabBarButton: (props) => (
-                        <TabComponent label="Dashboard" {...props} />
+                        <TabComponent label="Setting" {...props} />
                     ),
                     }}
                 />
@@ -156,7 +350,7 @@ const RootStack = () => {
                 options={{headerShown: false}}
             />
             <Stack.Screen
-                name="Dashboard"
+                name="Home"
                 component={BottomTabs}
                 options={{headerShown: false}}
             />
@@ -232,6 +426,8 @@ const styles = theme => StyleSheet.create({
     },
     logo: {
       marginRight: 5,
+      width: 100,
+      height: 50
     },
     userName: {
       textAlign: 'right',
@@ -260,6 +456,10 @@ const styles = theme => StyleSheet.create({
       fontSize: 15,
       lineHeight: 18,
       fontWeight: '700'
+    },
+    rightButtonOuter: {
+      justifyContent: 'center',
+      alignItems: 'center',
     }
   });
   

@@ -2,7 +2,6 @@
 import React, {useContext, useEffect} from 'react';
 import {Text, Image, View, StyleSheet} from 'react-native';
 import {CommonActions,} from '@react-navigation/native';
-import {styles} from '../styles/loading';
 import {withTranslation} from 'react-i18next';
 import { ThemeContext } from '../components/ThemeProvider';
 
@@ -29,7 +28,7 @@ const Loading = ({navigation, t, isLoading=true}) => {
   
   return (
     <View style={styles(theme).container}>
-      <Image source={isLoading? logo : logo_static} style={styles(theme).image} resizeMode="cover" />
+      <Image source={isLoading? logo : logo_static} style={styles(theme).image} resizeMode="contain" />
       <Text style={styles(theme).text}>{t('loading.loadingText')}</Text>
       <View style={styles(theme).textBottomContainer}>
         <Text style={styles(theme).textBottom}>{t('loading.loadingTextBottom')}</Text>

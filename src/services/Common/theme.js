@@ -211,7 +211,12 @@ export const LightTheme = {
       WDNRED_DARK: '#FF7870',
       WDNRED_LIGHT: '#D05F58',
       WDNBLUE: '#263999',
-  
+      BTN_ACTIVE: ['#6FC62E', '#AED754'],
+      BTN_DISABLE: ['#B4B4B4', '#E5E5E5'],
+      BTN_RESTART: ['#F898E5', '#F3BC3D'],
+
+      TEXT_DISABLE: '#5D5D5D',
+      BORDER_ITEM: '#C8DAE2',
     },
     dark: true,
     colors: {
