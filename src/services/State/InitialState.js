@@ -8,5 +8,8 @@ export const initialState = {
         MailPort: 465,
         MailUser: 'monitoring@soleux.com',
         MailPassword: 'M0n1t0r1ng..',
+    },
+    modalSetting: {
+        show: false,
     }
 };

@@ -33,6 +33,11 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Icon } from 'react-native-elements';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PDUList from './screens/PDUList';
+import DeviceInfo from './screens/DeviceInfo';
+
+import LeftArrowIcon from './assets/ico_arrow_left.svg';
+import { actions } from './services/State/Reducer';
+
 const { width } = Dimensions.get("window");
 
 const Tab = createBottomTabNavigator();
@@ -92,10 +97,11 @@ const RootStack = () => {
         headerLeft: showBackButton
           ? () => (
               <Ripple onPress={() => navigation.goBack()} style={styles(theme).leftButton}>
-                <Image source={arrowLeftIcon} resizeMode={'cover'}
+                <LeftArrowIcon
                   style={{
                     tintColor:theme.dark?theme.COLORS.WHITE : theme.COLORS.DEFAULT_DARKBLUE
-                  }}  />
+                  }}
+                />
               </Ripple>
             )
           : showAppIcon
@@ -217,12 +223,21 @@ const RootStack = () => {
                     dispatch,
                     showRightButton: true,
                     rightButtonIcon: (<MaterialIcons name='add' size={24} color={'white'} />),
-                    rightButtonOnPress: addDevice,
+                    rightButtonOnPress: ()=>{
+                      dispatch({
+                        type: actions.SET_MODALSETTING,
+                        modalSetting: {
+                          show: true,
+                          type: 'add',
+                        }
+                      });
+                    },
                     showAppIcon: true,
                 },
                 navigation,);
               }}
             />
+       
     </Stack.Navigator>
       );
     }
@@ -260,26 +275,39 @@ const RootStack = () => {
     
         return (
             <Stack.Navigator>
-                <Stack.Screen
-                    name="Dashboard"
-                    component={Dashboard}
-                    options={({navigation}) => {
-                        return Header(
-                        {
-                            title: i18n.t('Dashboard'),
-                            // isTransparent: true,
-                            // showLanguageDropdown: true,
-                            showRightButton:false,
-                            rightButtonIcon:profileIcon(navigation),
-                            rightButtonOnPress: onRightButtonPress,
-                            selectedLanguage: language,
-                            dispatch,
-                            languageOptions,
-                            showAppIcon: true,
-                        },
-                        navigation,);
-                      }}
-                    />
+              <Stack.Screen
+                  name="Dashboard"
+                  component={Dashboard}
+                  options={({navigation}) => {
+                      return Header(
+                      {
+                          title: i18n.t('Dashboard'),
+                          // isTransparent: true,
+                          // showLanguageDropdown: true,
+                          showRightButton:false,
+                          rightButtonIcon:<DrawerToggleButton tintColor='white' />,
+                          rightButtonOnPress: onRightButtonPress,
+                          selectedLanguage: language,
+                          dispatch,
+                          languageOptions,
+                          showAppIcon: true,
+                      },
+                      navigation,);
+                    }}
+                  />
+              <Stack.Screen
+                name="DeviceInfo"
+                component={DeviceInfo}
+                options={({navigation}) => {
+                  return Header(
+                  {
+                      title: i18n.t('Device Info'),
+                      dispatch,
+                      showBackButton: true,
+                  },
+                  navigation,);
+                }}
+              />    
             </Stack.Navigator>
         );
     };
@@ -304,8 +332,8 @@ const RootStack = () => {
             >
                 <Tab.Screen
                     name="DashboardPage"
-                    //component={DrawerNavigator}
-                    component={DashboardStack}
+                    component={DrawerNavigator}
+                    //component={DashboardStack}
                     options={{
                       headerShown: false,
                       unmountOnBlur: true,

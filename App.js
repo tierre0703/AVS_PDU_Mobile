@@ -34,18 +34,21 @@ import CreateRootNavigator from './src';
 import { StateProvider } from './src/services/State/State';
 import { initialState } from './src/services/State/InitialState';
 import { DarkTheme } from './src/services/Common/theme';
+import PDUEditModal from './src/components/PDUEditModal';
+import { reducer } from './src/services/State/Reducer';
 
 const RootNavigator = () => {
   const {theme} = useContext(ThemeContext);
 
   return (
     <>
-    <StatusBar
-      hidden={true}
-      barStyle="light-content"
-      translucent={true}
-      backgroundColor={theme.App_COLOR_3}
-      />
+      <StatusBar
+        hidden={true}
+        barStyle="light-content"
+        translucent={true}
+        backgroundColor={theme.App_COLOR_3}
+        />
+      <PDUEditModal />
       <CreateRootNavigator />
     </>
   );
@@ -58,7 +61,7 @@ const App = () => {
   }, []);
 
   return (
-    <StateProvider initialState={initialState}>
+    <StateProvider initialState={initialState}  reducer={reducer}>
       <ThemeContext.Provider value={{theme: theme, setTheme: setTheme}}>
         <MenuProvider>
           <I18nextProvider i18n={i18next}>

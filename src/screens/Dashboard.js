@@ -10,6 +10,9 @@ import { fontFamilies } from '../utils/FontFamilies';
 import { Menu, MenuOption, MenuOptions, MenuTrigger, renderers } from 'react-native-popup-menu';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+import { useNavigation } from '@react-navigation/native';
 const test_pdu_data = [
     {
         IP: '192.168.1.100',
@@ -53,6 +56,7 @@ const Dashboard = (props) => {
     const {theme} = useContext(ThemeContext);
     const [pduList, setPduList] = useState(test_pdu_data);
     const [pduButtonList, setPduButtonList] = useState(test_pdu_button_data);
+    const navigation = useNavigation();
 
     const [selectedDevice, setSelectedDevice] = useState(null);
 
@@ -185,19 +189,31 @@ const Dashboard = (props) => {
         );
     }
 
+    const navigateToDeviceInfo = () => {
+        navigation.navigate("DeviceInfo");
+    }
 
 
     return (
         <View style={styles(theme).container}>
-            {/* <View style={styles(theme).pdu_panel}>
-                <Text style={styles(theme).pdu_title}>{'PDU_UNIT_1'}</Text>
-                <Text style={styles(theme).pdu_title}>{'PDU STATS'}</Text>
-            </View> */}
-            <SelectBox
+            <View style={styles(theme).pdu_panel}>
+                <View>
+                    <Text style={styles(theme).pdu_title}>{'PDU_UNIT_1'}</Text>
+                    <Text style={styles(theme).pdu_title}>{'PDU STATS'}</Text>
+                </View>
+                <View>
+                    <Ripple
+                        onPress={() => navigateToDeviceInfo()}
+                    >
+                        <MaterialIcons name='info-outline' size={24} color={'white'} />
+                    </Ripple>
+                </View>
+            </View>
+           {/*  <SelectBox
                 options={pduList}
                 value={selectedDevice}
                 select={setSelectedDevice}
-            />
+            /> */}
             <FlatList
                 style={{
                     marginTop: 20,
@@ -221,8 +237,12 @@ const styles = theme => StyleSheet.create({
         backgroundColor: theme.App_COLOR_3
     },
     pdu_panel: {
-        backgroundColor: theme.COLORS.DARK_BLUE_80P,
+        //backgroundColor: theme.COLORS.DARK_BLUE_80P,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         borderRadius: 12,
+        borderColor: theme.COLORS.BORDER_ITEM,
+        borderWidth: 1,
         padding: 20,
         height: 180,
         marginBottom: 30,
