@@ -5,26 +5,161 @@ import {
     Modal,
     Text,
     TextInput,
-    StyleSheet
+    StyleSheet,
+    Alert,
 } from 'react-native';
 import { useStateValue } from '../services/State/State';
 import { fontFamilies } from '../utils/FontFamilies';
 import Ripple from './Ripple';
 import { ThemeContext } from './ThemeProvider';
+import { actions } from '../services/State/Reducer';
+import { savePDUSettings } from '../services/DataManager';
 
 const PDUEditModal = (props) => {
+
+
     const {t} = useTranslation();
 
     const {theme} = useContext(ThemeContext);
-    const [{modalSetting}, dispatch] = useStateValue();
-    const [host, setHost] = useState('');
-
-
+    const [{modalSetting, pduListSettings}, dispatch] = useStateValue();
+    
     const {
         show=false,
         type='add', //add | edit
-        item,
+        item={},
+        index,
     } = modalSetting || {};
+    console.log(item);
+
+
+    const {
+        pduList = [],
+        nextId = 0,
+    } = pduListSettings;
+
+    const [host, setHost] = useState('');
+    const [port, setPort] = useState('');
+    const [PDUName, setPDUName] = useState('');
+    const [autoload, setAutoload] = useState(false);
+
+
+    useEffect(()=>{
+        if(type === 'edit'){
+            setHost(item.host || '');
+            setPort(item.port || '');
+            setPDUName(item.PDUName || '');
+            setAutoload(item.autoload || false);
+        }
+
+    }, [type, item]);
+
+    const addItem = async () => {
+        // validation
+        if(host === ''){
+            Alert.alert('Error', 'PDU Host field cannot be empty!');
+            return;
+        }
+
+        if(port === ''){
+            Alert.alert('Error', 'PDU Port field cannot be empty!');
+            return;
+        }
+
+        if(PDUName === '') {
+            Alert.alert('Error', 'PDU Name field cannot be empty!');
+            return;
+        }
+
+        if(pduList.findIndex(item=>item.PDUName === PDUName && item.host === host) > -1){
+            Alert.alert(
+                'Notice',
+                'Same PDU is already registered.',
+                [{
+                    type: 'cancel',
+                    title: 'Cancel',
+                    onPress: ()=>{}
+                }]
+            );
+        }else{
+            const saveData = {
+                nextId: nextId + 1,
+                pduList: [...pduList, {
+                    ID: nextId + 1,
+                    PDUName: PDUName,
+                    port: port,
+                    host: host,
+                    autoload: autoload
+                }]
+            };
+
+            await savePDUSettings(saveData);
+
+            dispatch({
+                type: actions.SET_PDULIST,
+                pduListSettings: saveData
+            });
+
+            dispatch({
+                type: actions.SET_MODALSETTING,
+                modalSetting: {
+                    show: false,
+                }
+            });
+
+        }
+    }
+
+    const editItem = async () => {
+        // validation
+        if(host === ''){
+            Alert.alert('Error', 'PDU Host field cannot be empty!');
+            return;
+        }
+
+        if(port === ''){
+            Alert.alert('Error', 'PDU Port field cannot be empty!');
+            return;
+        }
+
+        if(PDUName === '') {
+            Alert.alert('Error', 'PDU Name field cannot be empty!');
+            return;
+        }
+
+        const savePduList = pduListSettings.pduList.map((ele, idx) => {
+            if(ele.ID === item.ID) {
+                return {
+                    ...ele,
+                    host: host,
+                    port: port,
+                    PDUName: PDUName,
+                    autoload: autoload
+                };
+            }
+            return ele;
+        })
+
+        const saveData = {
+            nextId: pduListSettings.nextId,
+            pduList: savePduList,
+        };
+
+        await savePDUSettings(saveData);
+
+        dispatch({
+            type: actions.SET_PDULIST,
+            pduListSettings: saveData,
+        });
+
+        dispatch({
+            type: actions.SET_MODALSETTING,
+            modalSetting: {
+                show: false,
+            }
+        });
+
+    }
+
 
     const InputBox = (props) => {
       
@@ -34,12 +169,20 @@ const PDUEditModal = (props) => {
           style={},
           titleStyle={},
           keyboardType='default',
+          placeholder='',
+          placeholderTextColor=theme.COLORS.WHITE_OPACITY_40P,
           setValue=()=>{},
           saveValue=()=>{}
         } = props;
   
         const [textValue, setTextValue] = useState(value);
-  
+        const handleKeyDown = (e) => {
+            if (e.nativeEvent.key === 'Enter') {
+                setTextValue(textValue);
+            }
+        }
+    
+    
         return (
           <View style={{
             borderRadius: 8,
@@ -60,6 +203,8 @@ const PDUEditModal = (props) => {
             >{title}</Text>
             <TextInput
               keyboardType={keyboardType}
+              placeholder={placeholder}
+              placeholderTextColor={placeholderTextColor}
               style={{
                 fontSize: 15,
                 lineHeight: 18,
@@ -72,12 +217,39 @@ const PDUEditModal = (props) => {
               onChangeText={(text)=>{
                 setTextValue(text);
               }}
+              onKeyPress={handleKeyDown}
               onBlur={()=>saveValue(textValue)}
             />
           </View>
         );
-      }
-  
+    }
+
+    const RadioButton = ({checked, onCheckChange}) => {
+        return (
+            <Ripple style={checked? styles(theme).radioButtonChecked: styles(theme).radioButton} onPress={() => onCheckChange(!checked)}>
+            </Ripple>
+        );
+    };
+
+    const closeModal = () => {
+        dispatch({
+            type: actions.SET_MODALSETTING,
+            modalSetting: {
+                show: false
+            }
+        });
+    }
+
+    const saveProc = () => {
+        if(type === 'add') {
+            addItem();
+        }else if (type === 'edit') {
+            editItem();
+        }
+
+        
+    }
+
 
     return (
         <Modal
@@ -96,22 +268,55 @@ const PDUEditModal = (props) => {
                             <InputBox
                                 title={'Host'}
                                 value={host}
+                                placeholder={'Enter PDU IP'}
                                 keyboardType={'email-address'}
                                 saveValue={(text)=>{
                                     setHost(text);
                                 }}
-                                />
+                            />
+                            <InputBox
+                                title={'Port'}
+                                value={port}
+                                placeholder={'Enter PDU Port'}
+                                keyboardType={'default'}
+                                saveValue={(text)=>{
+                                    setPort(text);
+                                }}
+                            />
+                            <InputBox
+                                title={'PDU Name'}
+                                value={PDUName}
+                                placeholder={'Enter PDU Name'}
+                                keyboardType={'default'}
+                                saveValue={(text)=>{
+                                    setPDUName(text);
+                                }}
+                            />
+
+                            <View style={styles(theme).radioButtonContainer}>
+                                <RadioButton checked={autoload} onCheckChange={
+                                    ()=>{setAutoload(!autoload)}
+                                } />
+                                <Text
+                                    style={styles(theme).radioButtonText}
+                                >
+                                {'Auto Connect to PDU when application start'}
+                                </Text>
+                            </View>
+
 
 
                         </View>
 
                         <Ripple
                             style={styles(theme).btn_container}
+                            onPress={saveProc}
                         >
                             <Text style={styles(theme).btn}>{'Save'}</Text>
                         </Ripple>
                         <Ripple
                             style={styles(theme).btn_container_cancel}
+                            onPress={closeModal}
                         >
                             <Text style={styles(theme).btn}>{'Cancel'}</Text>
                         </Ripple>
@@ -149,7 +354,7 @@ const styles = theme => StyleSheet.create({
         borderRadius: 30,
         paddingVertical: 50,
         paddingHorizontal: 30,
-        backgroundColor: theme.COLORS.WHITE, //theme.dark? //theme.COLORS.DEFAULT_LIGHTBLUE: theme.COLORS.WHITE,
+        backgroundColor: theme.dark? theme.COLORS.DEFAULT_LIGHTBLUE: theme.COLORS.WHITE,
     },
     header: {
         color: theme.COLORS.WHITE,
@@ -181,6 +386,47 @@ const styles = theme => StyleSheet.create({
         textAlign: 'center',
         fontWeight: '700',
         color: theme.COLORS.WHITE,
+    },
+    radioButtonContainer: {
+        paddingTop: 40,
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    radioButtonText: {
+        marginLeft: 17,
+        fontFamily: fontFamilies.Rogan,
+        fontSize: 16,
+        lineHeight: 19,
+        color: theme.dark? theme.COLORS.WHITE : theme.COLORS.DEFAULT_DARKBLUE
+    },
+    radioButton: {
+        width: 16,
+        height: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.COLORS.BLACK,
+        opacity: .3,
+    },
+    radioButtonChecked: {
+        width: 16,
+        height: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.COLORS.DOT_GREEN,
+    },
+    radioButtonDot: {
+        width: 16,
+        height: 16,
+        borderRadius: 12,
+        backgroundColor: theme.COLORS.DOT_GREEN,
+    },
+    tipText: {
+        fontFamily: fontFamilies.OutfitMedium,
+        fontSize: 12,
+        lineHeight: 16,
+        color: theme.dark?theme.COLORS.WHITE:theme.COLORS.DEFAULT_DARKBLUE
     }
 });
 

@@ -13,6 +13,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { useNavigation } from '@react-navigation/native';
+import { useStateValue } from '../services/State/State';
 const test_pdu_data = [
     {
         IP: '192.168.1.100',
@@ -54,7 +55,10 @@ const test_pdu_button_data = [
 
 const Dashboard = (props) => {
     const {theme} = useContext(ThemeContext);
-    const [pduList, setPduList] = useState(test_pdu_data);
+    const [{pduListSettings}, dispatch] = useStateValue();
+    const {pduList=[]} = pduListSettings;
+
+    //const [pduList, setPduList] = useState(test_pdu_data);
     const [pduButtonList, setPduButtonList] = useState(test_pdu_button_data);
     const navigation = useNavigation();
 
@@ -193,12 +197,12 @@ const Dashboard = (props) => {
         navigation.navigate("DeviceInfo");
     }
 
-
-    return (
-        <View style={styles(theme).container}>
+    const RenderPDU = ({item, index}) => {
+        console.log(item);
+        return (
             <View style={styles(theme).pdu_panel}>
                 <View>
-                    <Text style={styles(theme).pdu_title}>{'PDU_UNIT_1'}</Text>
+                    <Text style={styles(theme).pdu_title}>{item.PDUName}</Text>
                     <Text style={styles(theme).pdu_title}>{'PDU STATS'}</Text>
                 </View>
                 <View>
@@ -209,6 +213,31 @@ const Dashboard = (props) => {
                     </Ripple>
                 </View>
             </View>
+        );
+    }
+
+    const onScrollEnd = (e) => {
+        let pageNumber = Math.min(Math.max(Math.floor(e.nativeEvent.contentOffset.x / Dimensions.get('screen').width), 0), pduList.length);
+        console.log(pageNumber); 
+    }
+
+
+    return (
+        <View style={styles(theme).container}>
+            <FlatList
+                onMomentumScrollEnd={onScrollEnd}
+                horizontal
+                pagingEnabled={true}
+                showsHorizontalScrollIndicator={false}
+                legacyImplementation={false}
+                data={pduList}
+                renderItem={RenderPDU}
+                keyExtractor={(item, index) => `pdu_${index}`}
+                style={{
+                    width: '100%',         
+                    height: 250,
+                }}
+            />
            {/*  <SelectBox
                 options={pduList}
                 value={selectedDevice}
@@ -216,12 +245,14 @@ const Dashboard = (props) => {
             /> */}
             <FlatList
                 style={{
-                    marginTop: 20,
+                    marginTop: 10,
+                    marginBottom: 10,
+                    paddingHorizontal: 20,
                 }}
                 data={pduButtonList}
                 keyExtractor={(item, index) => `${index}`}
                 renderItem={PduItem}
-                ItemSeparatorComponent={() => <View style={{height: 20}} />}
+                ItemSeparatorComponent={() => <View style={{height: 2}} />}
                 showsVerticalScrollIndicator={false}
             />
         </View>
@@ -232,9 +263,8 @@ const styles = theme => StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        paddingHorizontal: 20,
         paddingTop: 20,
-        backgroundColor: theme.App_COLOR_3
+        backgroundColor: theme.COLORS.APP_BG,
     },
     pdu_panel: {
         //backgroundColor: theme.COLORS.DARK_BLUE_80P,
@@ -242,10 +272,14 @@ const styles = theme => StyleSheet.create({
         justifyContent: 'space-between',
         borderRadius: 12,
         borderColor: theme.COLORS.BORDER_ITEM,
-        borderWidth: 1,
+        borderWidth: 0,
         padding: 20,
-        height: 180,
-        marginBottom: 30,
+        minHeight: 160,
+        backgroundColor: theme.COLORS.APP_BG_PANEL,
+        marginHorizontal: 20,
+        width: Dimensions.get('screen').width - 40,
+
+
     },
     pdu_place_holder: {
         fontSize: 15,
@@ -255,7 +289,7 @@ const styles = theme => StyleSheet.create({
         fontWeight: '700',
         fontSize: 16,
         fontFamily: fontFamilies.Rogan,
-        color: theme.COLORS.WHITE,
+        color: theme.dark? theme.COLORS.WHITE: theme.COLORS.BLACK,
     },
     itemContainer: {
         flexDirection: 'row',
@@ -264,9 +298,11 @@ const styles = theme => StyleSheet.create({
         width: '100%',
         borderRadius: 12,
         borderColor: theme.COLORS.BORDER_ITEM,
-        borderWidth: 1,
+        borderWidth: 0,
         paddingVertical: 18,
         paddingHorizontal: 18,
+        backgroundColor: theme.COLORS.APP_BG_PANEL,
+
     },
     item_title: {
         width: '50%',
@@ -274,7 +310,7 @@ const styles = theme => StyleSheet.create({
     },
     item_title_text: {
         fontSize: 16,
-        color: theme.COLORS.WHITE,
+        color: theme.dark? theme.COLORS.WHITE: theme.COLORS.BLACK,
     },
     item_btn_container: {
         padding: 10,

@@ -84,7 +84,7 @@ const RootStack = () => {
         headerStyle: {
           shadowOpacity: 0,
           elevation: isTransparent ? 0 : 4,
-          backgroundColor: isTransparent ? 'transparent' : theme.dark? theme.colors.background : theme.COLORS.WHITE,
+          backgroundColor: isTransparent ? 'transparent' : theme.dark? theme.colors.background : theme.COLORS.APPBAR_BLUE,
           height:80,
         },
         headerLeftContainerStyle: {
@@ -116,7 +116,8 @@ const RootStack = () => {
           : null,
     });
 
-    const DrawerNavigator = () => {
+    const DrawerNavigator = (props) => {
+      console.log(props);
       return (
         <Drawer.Navigator
           initialRouteName='Dashboard'
@@ -322,6 +323,7 @@ const RootStack = () => {
                   display: 'flex',
                   zIndex: 1,
                   height: 80,
+                  borderTopWidth: .5,
                   backgroundColor: theme.dark ? theme.colors.background : theme.COLORS.WHITE,
                   elevation: 3,
                   shadowOpacity: 0.5,
@@ -332,8 +334,8 @@ const RootStack = () => {
             >
                 <Tab.Screen
                     name="DashboardPage"
-                    component={DrawerNavigator}
-                    //component={DashboardStack}
+                    //component={DrawerNavigator}
+                    component={DashboardStack}
                     options={{
                       headerShown: false,
                       unmountOnBlur: true,
@@ -479,7 +481,7 @@ const styles = theme => StyleSheet.create({
       justifyContent: 'center'
     },
     headerTitleStyle: {
-      color: theme.dark? theme.COLORS.WHITE : theme.COLORS.DEFAULT_DARKBLUE,
+      color: theme.dark? theme.COLORS.WHITE : theme.COLORS.WHITE,
       fontFamily: fontFamilies.Rogan,
       fontSize: 15,
       lineHeight: 18,

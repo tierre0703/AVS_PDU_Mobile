@@ -16,14 +16,14 @@ pdu_list: [{
     Autoload: false,
 }]
  */
-export const setPDUList = async (pdu_list) => {
+export const savePDUSettings = async (pdu_list) => {
     try {
         await AsyncStorage.setItem(KEYS.PDU_LIST, JSON.stringify(pdu_list));
     }catch(err){
     }
 }
 
-export const getPDUList = async () => {
+export const getPDUSettings = async () => {
     try {
         const response = await AsyncStorage.getItem(KEYS.PDU_LIST);
         if(response){

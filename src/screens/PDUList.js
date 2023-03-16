@@ -1,11 +1,17 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Text, Image, View, StyleSheet} from 'react-native';
+import {Text, Image, View, StyleSheet, Alert} from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Ripple from '../components/Ripple';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { ThemeContext } from '../components/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 
+import DeleteIcon from '../assets/ico_delete.svg';
+import EditIcon from '../assets/ico_edit.svg';
+import { useStateValue } from '../services/State/State';
+import { actions } from '../services/State/Reducer';
+import { savePDUSettings } from '../services/DataManager';
 const test_pdu_list = [
     {
         IP: '192.168.1.100',
@@ -32,37 +38,117 @@ const test_pdu_list = [
 
 const PDUList = (props) => {
     const navigation = useNavigation();
+    const [{pduListSettings}, dispatch] = useStateValue();
+
+    const {
+        nextId = 0,
+        pduList = []
+
+    } = pduListSettings;
 
     const {theme} = useContext(ThemeContext);
-    const [pduList, setPduList] = useState(test_pdu_list);
 
     const navigateToDeviceInfo = () => {
         navigation.navigate("DeviceInfo");
     }
+    const deleteItem = async (item, index) => {
+        Alert.alert(
+            "Notice",
+            "Do you really delete this item?",
+            [
+                {
+                    text: 'Cancel',
+                    onPress: ()=>{},
+                    style: 'cancel'
+                },
+                {
+                    text: 'Confirm',
+                    onPress: async () => {
+
+                        const filtered_list = pduList.filter(ele=>ele.ID !== item.ID);
+                        const saveData = {
+                            nextId: pduList.nextId,
+                            pduList: filtered_list
+                        };
+
+                        await savePDUSettings(saveData);
+                        dispatch({
+                            type: actions.SET_PDULIST,
+                            pduListSettings: saveData,
+                        });
+                    }
+                }
+            ]
+            );
+
+    }
+
+    const editItem = async (item, index) => {
+        dispatch({
+            type: actions.SET_MODALSETTING,
+            modalSetting: {
+                show: true,
+                type: 'edit',
+                item: item,
+                index: index,
+            }
+        });
+
+    }
 
     const PDUItem = ({item, index}) => {
+
         return (
-            <View style={styles(theme).itemContainer}>
+            <Ripple style={styles(theme).itemContainer}>
                 <View>
                     <Text style={styles(theme).item_title_text}>{item.PDUName}</Text>
-                    <Text style={styles(theme).item_title_text}>{item.IP}</Text>
-                    <Text style={styles(theme).item_title_text}>{item.Port}</Text>
+                    <Text style={styles(theme).item_title_text}>{item.host}</Text>
+                    <Text style={styles(theme).item_title_text}>{item.port}</Text>
                 </View>
                 <Text style={styles(theme).item_title_text}>{item.Autoload}</Text>
                 <View>
                     <Ripple
-                        onPress={() => navigateToDeviceInfo()}
+                        onPress={() => editItem(item, index)}
                     >
-                        <MaterialIcons name='info-outline' size={24} color={'white'} />
+                        <EditIcon width={32} height={32} />
+                    </Ripple>
+                    <Ripple
+                        style={{
+                            marginTop: 10,
+                        }}
+                        onPress={() => deleteItem(item, index)}
+                    >
+                        <DeleteIcon width={32} height={32} />
                     </Ripple>
                 </View>
-            </View>
+            </Ripple>
         );
+    }
+
+    const Tab = (props) => {
+        return (
+        <>
+        </>
+        );
+    }
+
+    const onTabChange = (props) => {
+
     }
 
 
     return (
         <View style={styles(theme).container}>
+           {/*  <View style={styles(theme).tabs}>
+                <Tab
+                    setTab={onTabChange}
+                    title="My PDUs"
+                />
+                <Tab
+                    setTab={onTabChange}
+                    title="PDUs"
+                />
+            </View> */}
             <FlatList
                 style={{
                     marginTop: 20,
@@ -102,6 +188,10 @@ const styles = theme => StyleSheet.create({
         fontSize: 16,
         color: theme.COLORS.WHITE,
     },
+    tabs: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+    }
 });
 
 export default PDUList;

@@ -42,7 +42,7 @@ const styles = theme => StyleSheet.create({
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: theme.App_COLOR_3
+      backgroundColor: theme.COLORS.APPBAR_BLUE,
     },
     text: {
       fontSize: 18,

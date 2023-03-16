@@ -31,14 +31,29 @@ import {MenuProvider} from 'react-native-popup-menu';
 import { default as AsyncStorage } from '@react-native-async-storage/async-storage';
 import ThemeProvider, { ThemeContext } from './src/components/ThemeProvider';
 import CreateRootNavigator from './src';
-import { StateProvider } from './src/services/State/State';
+import { StateProvider, useStateValue } from './src/services/State/State';
 import { initialState } from './src/services/State/InitialState';
-import { DarkTheme } from './src/services/Common/theme';
+import { DarkTheme, LightTheme } from './src/services/Common/theme';
 import PDUEditModal from './src/components/PDUEditModal';
-import { reducer } from './src/services/State/Reducer';
+import { actions, reducer } from './src/services/State/Reducer';
+import { getPDUSettings } from './src/services/DataManager';
 
 const RootNavigator = () => {
   const {theme} = useContext(ThemeContext);
+
+  const [{}, dispatch] = useStateValue();
+
+  useEffect(()=>{
+    checkPduListSettings();
+  }, []);
+
+  const checkPduListSettings = async () => {
+    const save_data = await getPDUSettings();
+    dispatch({
+      type: actions.SET_PDULIST,
+      pduListSettings: save_data,
+    });
+  };
 
   return (
     <>

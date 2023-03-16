@@ -11,5 +11,9 @@ export const initialState = {
     },
     modalSetting: {
         show: false,
-    }
+    },
+    pduListSettings: {
+        nextId: 0,
+        pduList:[]
+    },
 };
