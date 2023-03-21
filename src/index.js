@@ -34,9 +34,11 @@ import { Icon } from 'react-native-elements';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PDUList from './screens/PDUList';
 import DeviceInfo from './screens/DeviceInfo';
+import DevicesIcon from './assets/ico_devices.svg';
 
 import LeftArrowIcon from './assets/ico_arrow_left.svg';
 import { actions } from './services/State/Reducer';
+import { Cloud } from './screens/Cloud';
 
 const { width } = Dimensions.get("window");
 
@@ -57,7 +59,8 @@ const RootStack = () => {
     const addDevice = (navigation) => {
     }
 
-    const onRightButtonPress = (navigation) => {
+    const navigateToDeviceList = (navigation) => {
+      navigation.navigate('DeviceList');
     }
     const onClickProfileSettings = (navigation) => {
     }
@@ -243,6 +246,40 @@ const RootStack = () => {
       );
     }
 
+    const CloudStack = () => {
+      const [{}, dispatch] = useStateValue();
+
+      return (
+        <Stack.Navigator>
+        <Stack.Screen
+            name="Cloud"
+            component={Cloud}
+            options={({navigation}) => {
+                return Header(
+                {
+                    title: i18n.t('Cloud'),
+                    dispatch,
+                    showRightButton: true,
+                    rightButtonIcon: (<MaterialIcons name='add' size={24} color={'white'} />),
+                    rightButtonOnPress: ()=>{
+                      dispatch({
+                        type: actions.SET_MODALSETTING,
+                        modalSetting: {
+                          show: true,
+                          type: 'add',
+                        }
+                      });
+                    },
+                    showAppIcon: true,
+                },
+                navigation,);
+              }}
+            />
+       
+    </Stack.Navigator>
+      );
+    }
+
     const DashboardStack = () => {
       const languageOptions = [
         {
@@ -286,8 +323,11 @@ const RootStack = () => {
                           // isTransparent: true,
                           // showLanguageDropdown: true,
                           showRightButton:false,
-                          rightButtonIcon:<DrawerToggleButton tintColor='white' />,
-                          rightButtonOnPress: onRightButtonPress,
+                          //rightButtonIcon:<DrawerToggleButton tintColor='white' />,
+                          rightButtonIcon: <DevicesIcon width="24" height="24" fill="white" />,
+                          rightButtonOnPress: ()=>{
+                            navigation.navigate('Devices');
+                          },
                           selectedLanguage: language,
                           dispatch,
                           languageOptions,
@@ -308,7 +348,32 @@ const RootStack = () => {
                   },
                   navigation,);
                 }}
-              />    
+              />  
+              <Stack.Screen
+                name="Devices"
+                component={PDUList}
+                options={({navigation}) => {
+                    return Header(
+                    {
+                        title: i18n.t('Devices'),
+                        dispatch,
+                        showBackButton: true,
+                        showRightButton: true,
+                        //rightButtonIcon: (<MaterialIcons name='add' size={24} color={'white'} />),
+                        //rightButtonOnPress: ()=>{
+                        //  dispatch({
+                        //    type: actions.SET_MODALSETTING,
+                        //    modalSetting: {
+                        //      show: true,
+                        //      type: 'add',
+                        //    }
+                        //  });
+                        //},
+                        showAppIcon: true,
+                    },
+                    navigation,);
+                  }}
+                />  
             </Stack.Navigator>
         );
     };
@@ -323,8 +388,8 @@ const RootStack = () => {
                   display: 'flex',
                   zIndex: 1,
                   height: 80,
-                  borderTopWidth: .5,
-                  backgroundColor: theme.dark ? theme.colors.background : theme.COLORS.WHITE,
+                  borderTopWidth: .1,
+                  backgroundColor: theme.dark ? theme.colors.background : '#fafafa',
                   elevation: 3,
                   shadowOpacity: 0.5,
                   paddingBottom: 25,
@@ -345,14 +410,14 @@ const RootStack = () => {
                     }}
                 />
                 <Tab.Screen
-                    name="Devices"
+                    name="Cloud"
                     //component={DrawerNavigator}
-                    component={DevicesStack}
+                    component={CloudStack}
                     options={{
                       headerShown: false,
                       unmountOnBlur: true,
                       tabBarButton: (props) => (
-                          <TabComponent label="Devices" {...props} />
+                          <TabComponent label="Cloud" {...props} />
                       ),
                     }}
                 />

@@ -21,15 +21,15 @@ const PDUEditModal = (props) => {
     const {t} = useTranslation();
 
     const {theme} = useContext(ThemeContext);
-    const [{modalSetting, pduListSettings}, dispatch] = useStateValue();
+    const [{pduListSettings}, dispatch] = useStateValue();
     
     const {
         show=false,
         type='add', //add | edit
         item={},
-        index,
-    } = modalSetting || {};
-    console.log(item);
+        index = 0,
+        closeModal = ()=>{}
+    } = props || {};
 
 
     const {
@@ -99,12 +99,7 @@ const PDUEditModal = (props) => {
                 pduListSettings: saveData
             });
 
-            dispatch({
-                type: actions.SET_MODALSETTING,
-                modalSetting: {
-                    show: false,
-                }
-            });
+            closeModal();
 
         }
     }
@@ -126,7 +121,7 @@ const PDUEditModal = (props) => {
             return;
         }
 
-        const savePduList = pduListSettings.pduList.map((ele, idx) => {
+        const savePduList = pduListSettings.pduList.filter(ele=>ele.PDUName).map((ele, idx) => {
             if(ele.ID === item.ID) {
                 return {
                     ...ele,
@@ -151,12 +146,7 @@ const PDUEditModal = (props) => {
             pduListSettings: saveData,
         });
 
-        dispatch({
-            type: actions.SET_MODALSETTING,
-            modalSetting: {
-                show: false,
-            }
-        });
+        closeModal();
 
     }
 
@@ -178,7 +168,7 @@ const PDUEditModal = (props) => {
         const [textValue, setTextValue] = useState(value);
         const handleKeyDown = (e) => {
             if (e.nativeEvent.key === 'Enter') {
-                setTextValue(textValue);
+                saveValue(textValue);
             }
         }
     
@@ -195,10 +185,10 @@ const PDUEditModal = (props) => {
             <Text
               style={{
                 fontFamily: fontFamilies.Rogan,
-                fontWeight: '700',
-                color: theme.dark ? theme.COLORS.WHITE : theme.COLORS.DEFAULT_DARKBLUE,
-                fontSize:12,
-                lineHeight: 14,
+                fontWeight: '500',
+                color: theme.dark ? theme.COLORS.WHITE : theme.COLORS.APP_GREY,
+                fontSize:14,
+                lineHeight: 16,
                 ...titleStyle}}
             >{title}</Text>
             <TextInput
@@ -210,7 +200,7 @@ const PDUEditModal = (props) => {
                 lineHeight: 18,
                 fontFamily: fontFamilies.Rogan,
                 fontWeight: '500',
-                color: theme.dark ? theme.COLORS.TEXT_GREY: theme.COLORS.TEXT_LIGHTGREY,
+                color: theme.dark ? theme.COLORS.TEXT_GREY: theme.COLORS.BLACK,
            
               }}
               value={textValue}
@@ -230,15 +220,6 @@ const PDUEditModal = (props) => {
             </Ripple>
         );
     };
-
-    const closeModal = () => {
-        dispatch({
-            type: actions.SET_MODALSETTING,
-            modalSetting: {
-                show: false
-            }
-        });
-    }
 
     const saveProc = () => {
         if(type === 'add') {
@@ -295,7 +276,10 @@ const PDUEditModal = (props) => {
 
                             <View style={styles(theme).radioButtonContainer}>
                                 <RadioButton checked={autoload} onCheckChange={
-                                    ()=>{setAutoload(!autoload)}
+                                    ()=>{
+                                        console.log(autoload);
+                                        setAutoload(!autoload)
+                                    }
                                 } />
                                 <Text
                                     style={styles(theme).radioButtonText}
@@ -318,7 +302,7 @@ const PDUEditModal = (props) => {
                             style={styles(theme).btn_container_cancel}
                             onPress={closeModal}
                         >
-                            <Text style={styles(theme).btn}>{'Cancel'}</Text>
+                            <Text style={styles(theme).btn_cancel}>{'Cancel'}</Text>
                         </Ripple>
 
                     </View>
@@ -343,7 +327,9 @@ const styles = theme => StyleSheet.create({
         position: 'absolute',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.dark ? theme.COLORS.DARK_BLUE_80P:theme.COLORS.DARK_WHITE_80P,
+        backgroundColor: theme.dark ? theme.COLORS.DARK_BLUE_80P: '#000000D0',
+
+
         paddingHorizontal: 60,
     },
     panel: {
@@ -351,7 +337,7 @@ const styles = theme => StyleSheet.create({
         minHeight: '70%',
         alignItems: 'center',
         width: '100%',
-        borderRadius: 30,
+        borderRadius: 8,
         paddingVertical: 50,
         paddingHorizontal: 30,
         backgroundColor: theme.dark? theme.COLORS.DEFAULT_LIGHTBLUE: theme.COLORS.WHITE,
@@ -368,25 +354,37 @@ const styles = theme => StyleSheet.create({
         paddingVertical: 10,
     },
     btn_container: {
-        borderRadius: 12,
+        borderRadius: 8,
         width: '100%',
-        backgroundColor: theme.COLORS.GREEN,
+        backgroundColor: theme.COLORS.APPBAR_BLUE,
+        borderWidth: 1,
+        borderColor: theme.COLORS.APPBAR_BLUE,
         marginBottom: 16,
-        paddingVertical: 10,
+        paddingVertical: 15,
     },
     btn_container_cancel: {
-        borderRadius: 12,
+        borderRadius: 8,
         width: '100%',
-        //backgroundColor: theme.COLORS.GREEN,
+        borderWidth: 1,
+        borderColor: theme.COLORS.APP_GREY,
+        // backgroundColor: theme.COLORS.GREEN,
         marginBottom: 16,
-        paddingVertical: 10,
+        paddingVertical: 15,
     },
     btn: {
         fontSize: 16,
         textAlign: 'center',
-        fontWeight: '700',
+        fontWeight: '500',
         color: theme.COLORS.WHITE,
     },
+
+    btn_cancel: {
+        fontSize: 16,
+        textAlign: 'center',
+        fontWeight: '500',
+        color: theme.COLORS.BLACK,
+    },
+
     radioButtonContainer: {
         paddingTop: 40,
         flexDirection: 'row',
@@ -397,7 +395,7 @@ const styles = theme => StyleSheet.create({
         fontFamily: fontFamilies.Rogan,
         fontSize: 16,
         lineHeight: 19,
-        color: theme.dark? theme.COLORS.WHITE : theme.COLORS.DEFAULT_DARKBLUE
+        color: theme.dark? theme.COLORS.WHITE : theme.COLORS.APP_GREY
     },
     radioButton: {
         width: 16,
@@ -414,7 +412,7 @@ const styles = theme => StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.COLORS.DOT_GREEN,
+        backgroundColor: theme.COLORS.APPBAR_BLUE,
     },
     radioButtonDot: {
         width: 16,

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18next from 'i18next';
+import { initialState } from './State/InitialState';
 
 const KEYS = {
     LANGUAGE: 'LANGUAGE',
@@ -33,7 +34,7 @@ export const getPDUSettings = async () => {
 
     }
 
-    return null;
+    return initialState.pduListSettings;
 }
 
 export const setSettings = async (settings) => {
