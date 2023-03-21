@@ -37,6 +37,7 @@ import { DarkTheme, LightTheme } from './src/services/Common/theme';
 import PDUEditModal from './src/components/PDUEditModal';
 import { actions, reducer } from './src/services/State/Reducer';
 import { getPDUSettings } from './src/services/DataManager';
+import { PDUSocketProvider } from './src/services/PDUSocketProvider';
 
 const RootNavigator = () => {
   const {theme} = useContext(ThemeContext);
@@ -49,6 +50,7 @@ const RootNavigator = () => {
 
   const checkPduListSettings = async () => {
     const save_data = await getPDUSettings();
+    console.log(save_data);
     dispatch({
       type: actions.SET_PDULIST,
       pduListSettings: save_data,
@@ -63,14 +65,14 @@ const RootNavigator = () => {
         translucent={true}
         backgroundColor={theme.App_COLOR_3}
         />
-      <PDUEditModal />
+      {/* <PDUEditModal /> */}
       <CreateRootNavigator />
     </>
   );
 }
 
 const App = () => {
-  const [theme, setTheme] = useState(DarkTheme);
+  const [theme, setTheme] = useState(LightTheme);
 
   useEffect(()=>{
   }, []);
@@ -78,11 +80,13 @@ const App = () => {
   return (
     <StateProvider initialState={initialState}  reducer={reducer}>
       <ThemeContext.Provider value={{theme: theme, setTheme: setTheme}}>
-        <MenuProvider>
-          <I18nextProvider i18n={i18next}>
-            <RootNavigator />
-          </I18nextProvider>
-        </MenuProvider>
+        <PDUSocketProvider>
+          <MenuProvider>
+            <I18nextProvider i18n={i18next}>
+              <RootNavigator />
+            </I18nextProvider>
+          </MenuProvider>
+        </PDUSocketProvider>
       </ThemeContext.Provider>
     </StateProvider>
   );

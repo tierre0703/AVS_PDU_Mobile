@@ -109,6 +109,7 @@ export const LightTheme = {
       APPBAR_BLUE: '#236ee7',
       APP_BG: '#eeeeee',
       APP_BG_PANEL: '#fff',
+      APP_GREY: '#666666',
 
     },
     dark: false,
@@ -232,6 +233,7 @@ export const LightTheme = {
       APPBAR_BLUE: '#236ee7',
       APP_BG: '#263999',
       APP_BG_PANEL: '#172882',
+      APP_GREY: '#666666',
 
     },
     dark: true,

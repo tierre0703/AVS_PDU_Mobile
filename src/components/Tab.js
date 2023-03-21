@@ -8,11 +8,12 @@ import { useStateValue } from '../services/State/State';
 import { useContext } from 'react';
 import { ThemeContext } from './ThemeProvider';
 
-import DashboardIcon from '../assets/ico_dashboard_dark.svg';
+import DashboardIcon from '../assets/ico_dashboard.svg';
 import ProfileIcon from '../assets/ico_profile_dark.svg';
 import SurveyIcon from '../assets/ico_survey_dark.svg';
-import SettingIcon from '../assets/ico_setting_.svg';
+import SettingIcon from '../assets/ico_setting.svg';
 import DevicesIcon from '../assets/ico_devices.svg';
+import CloudIcon from '../assets/ico_cloud.svg';
 import Setting from '../screens/Setting';
 const styles = StyleSheet.create({
   indicatorContainer: {
@@ -28,8 +29,8 @@ const styles = StyleSheet.create({
     width: 30,
   },
   dashboardIcon: {
-    //width: 24,
-    //height: 24,
+    width: 24,
+    height: 24,
   },
   myWalletIcon: {
     width: 24,
@@ -65,7 +66,7 @@ function Tab({label, accessibilityState, onPress}) {
 
 const icons = {
   Dashboard: (
-    <DashboardIcon style={styles.dashboardIcon} />
+    <DashboardIcon style={styles.dashboardIcon} width={24} height={24} />
   ),
   Mirror: (
     <ProfileIcon style={styles.dashboardIcon} />
@@ -78,25 +79,31 @@ const icons = {
   ),
   Devices: (
     <DevicesIcon style={styles.dashboardIcon} />
+  ),
+  Cloud: (
+    <CloudIcon style={styles.dashboardIcon} />
   )
 }
 
 
 const iconsLight = {
   Dashboard: (
-    <DashboardIcon style={styles.dashboardIcon} />
+    <DashboardIcon style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
   ),
   Mirror: (
-    <ProfileIcon style={styles.dashboardIcon} />
+    <ProfileIcon style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
   ),
   Survey: (
-    <SurveyIcon  style={styles.dashboardIcon} />
+    <SurveyIcon  style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
   ),
   Setting: (
-    <SettingIcon style={styles.dashboardIcon} />
+    <SettingIcon style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
   ),
   Devices: (
-    <DevicesIcon style={styles.dashboardIcon} />
+    <DevicesIcon style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
+  ),
+  Cloud: (
+    <CloudIcon style={styles.dashboardIcon} width={24} height={24} fill={theme.COLORS.APP_GREY} />
   )
 }
 
