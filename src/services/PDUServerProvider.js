@@ -1,6 +1,7 @@
-import React, {useContext, useState, useEffect} from 'react';
+import React, {createContext, useContext, useReducer, useEffect, useState} from 'react';
 import { createServer } from 'react-native-tcp-socket';
 import {NativeModules} from 'react-native';
+import {NetworkInfo} from 'react-native-network-info';
 
 import dgram from 'react-native-udp';
 const REMOTE_PORT = 8000;
@@ -14,8 +15,9 @@ export const PDUServerProvider = ({children}) => {
     const [localNetworkAddresses, setLocalNetworkAddresses] = useState([]);
 
     const requestDiscoverPDUs = async (ips) => {
+        console.log(NativeModules);
         const socket = dgram.createSocket({
-            type: NativeModules.TCPManagerConstants.SocketType.UDPv4,
+            type: 'udp4',
             reusePort: true
         });
 
@@ -23,9 +25,12 @@ export const PDUServerProvider = ({children}) => {
             const message = '{\n"GUID" : "8481fba0-f387-11ea-adc1-0242ac120002",\n"Ver" : "1.3.0",\n"Port" : "8001"\n}';
        
             ips.map((ip)=>{
-                socket.send(message, REMOTE_PORT, ip, (err) => {
+                const messageBuffer = Buffer.from(message);
+                socket.send(messageBuffer, 0, messageBuffer.length,REMOTE_PORT, ip, 
+                //socket.send(message, REMOTE_PORT, ip, 
+                    (err) => {
                     if(err){
-                        console.error(`Error sending message: ${err}`);
+                       // console.error(`Error sending message: ${err}`);
                     }else{
                         console.log(`Sent message to ${ip}:${REMOTE_PORT}: ${message}`);
                     }
@@ -36,7 +41,8 @@ export const PDUServerProvider = ({children}) => {
     }
 
     const getLocalNetworkAddresses = async () => {
-        const ipAddress = await NetworkInfo.getIPAddress();
+        var ipAddress = await NetworkInfo.getIPAddress();
+        ipAddress = '10.100.100.81';
         const subnetMask = await NetworkInfo.getSubnet();
         const subnetMaskArray = subnetMask.split('.');
         const ipAddressArray = ipAddress.split('.');
@@ -58,6 +64,7 @@ export const PDUServerProvider = ({children}) => {
             _localNetworkAddresses.push(networkAddress);
             }
         }
+        console.log(_localNetworkAddresses);
         setLocalNetworkAddresses(prev => [..._localNetworkAddresses]);
         return _localNetworkAddresses;
     }
@@ -76,6 +83,7 @@ export const PDUServerProvider = ({children}) => {
             // Handle incoming data from the client
             //GUID:24d9b67e-f38d-11ea-adc1-0242ac120002\nVER:1.6\nPORT:5005\nSN:02c0018115a3a72d\nNAME:Soleux PDU\n
             socket.on('data', (data) => {
+                console.log(data);
                 const host = socket.remoteAddress;
                 
                 var Version, GUID, port, PDUName, SN, Verified = '';
@@ -159,11 +167,14 @@ export const PDUServerProvider = ({children}) => {
     useEffect(()=>{
         console.log('PDUServer Initialization');
         const server = runServer();
-        getLocalNetworkAddresses();
+        console.log(server);
+        getLocalNetworkAddresses().then(ips =>{
+            requestDiscoverPDUs(ips);
+        });
 
         return () => {
-            if(server != null){
-                server.destroy();
+            if(server){
+                //server.close();
             }
         }
 

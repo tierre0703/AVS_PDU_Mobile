@@ -38,6 +38,7 @@ import PDUEditModal from './src/components/PDUEditModal';
 import { actions, reducer } from './src/services/State/Reducer';
 import { getPDUSettings } from './src/services/DataManager';
 import { PDUSocketProvider } from './src/services/PDUSocketProvider';
+import { PDUServerProvider } from './src/services/PDUServerProvider';
 
 const RootNavigator = () => {
   const {theme} = useContext(ThemeContext);
@@ -80,13 +81,15 @@ const App = () => {
   return (
     <StateProvider initialState={initialState}  reducer={reducer}>
       <ThemeContext.Provider value={{theme: theme, setTheme: setTheme}}>
-        <PDUSocketProvider>
-          <MenuProvider>
-            <I18nextProvider i18n={i18next}>
-              <RootNavigator />
-            </I18nextProvider>
-          </MenuProvider>
-        </PDUSocketProvider>
+        <PDUServerProvider>
+          <PDUSocketProvider>
+            <MenuProvider>
+              <I18nextProvider i18n={i18next}>
+                <RootNavigator />
+              </I18nextProvider>
+            </MenuProvider>
+          </PDUSocketProvider>
+        </PDUServerProvider>
       </ThemeContext.Provider>
     </StateProvider>
   );
