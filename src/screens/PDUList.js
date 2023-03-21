@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {Text, Image, View, StyleSheet, Alert} from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import Ripple from '../components/Ripple';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -12,6 +12,8 @@ import EditIcon from '../assets/ico_edit.svg';
 import { useStateValue } from '../services/State/State';
 import { actions } from '../services/State/Reducer';
 import { savePDUSettings } from '../services/DataManager';
+import RenewIcon from '../assets/ico_renew.svg';
+import PDUEditModal from '../components/PDUEditModal';
 const test_pdu_list = [
     {
         IP: '192.168.1.100',
@@ -39,6 +41,7 @@ const test_pdu_list = [
 const PDUList = (props) => {
     const navigation = useNavigation();
     const [{pduListSettings}, dispatch] = useStateValue();
+    const [modalSettings, setModalSettings] = useState({show: false});
 
     const {
         nextId = 0,
@@ -83,6 +86,13 @@ const PDUList = (props) => {
 
     }
 
+    const addItem = async () => {
+        setModalSettings({
+            show: true,
+            type: 'add',
+        });
+    }
+
     const editItem = async (item, index) => {
         dispatch({
             type: actions.SET_MODALSETTING,
@@ -96,21 +106,26 @@ const PDUList = (props) => {
 
     }
 
+    const closeModal = () => {
+        setModalSettings({
+            show: false,
+        });
+    }
+
     const PDUItem = ({item, index}) => {
 
         return (
             <Ripple style={styles(theme).itemContainer}>
                 <View>
                     <Text style={styles(theme).item_title_text}>{item.PDUName}</Text>
-                    <Text style={styles(theme).item_title_text}>{item.host}</Text>
-                    <Text style={styles(theme).item_title_text}>{item.port}</Text>
+                    <Text style={styles(theme).item_property_text}>{`${item.host}:${item.port}`}</Text>
                 </View>
                 <Text style={styles(theme).item_title_text}>{item.Autoload}</Text>
                 <View>
                     <Ripple
                         onPress={() => editItem(item, index)}
                     >
-                        <EditIcon width={32} height={32} />
+                        <EditIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
                     </Ripple>
                     <Ripple
                         style={{
@@ -118,7 +133,36 @@ const PDUList = (props) => {
                         }}
                         onPress={() => deleteItem(item, index)}
                     >
-                        <DeleteIcon width={32} height={32} />
+                        <DeleteIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
+                    </Ripple>
+                </View>
+            </Ripple>
+        );
+    }
+
+    
+    const PDUNetworkItem = ({item, index}) => {
+
+        return (
+            <Ripple style={styles(theme).itemContainer}>
+                <View>
+                    <Text style={styles(theme).item_title_text}>{item.PDUName}</Text>
+                    <Text style={styles(theme).item_property_text}>{`${item.host}:${item.port}`}</Text>
+                </View>
+                <Text style={styles(theme).item_title_text}>{item.Autoload}</Text>
+                <View>
+                    <Ripple
+                        onPress={() => editItem(item, index)}
+                    >
+                        <EditIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
+                    </Ripple>
+                    <Ripple
+                        style={{
+                            marginTop: 10,
+                        }}
+                        onPress={() => deleteItem(item, index)}
+                    >
+                        <DeleteIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
                     </Ripple>
                 </View>
             </Ripple>
@@ -136,57 +180,145 @@ const PDUList = (props) => {
 
     }
 
+    const VirtualizedList = ({children}) => {
+        return (
+            <FlatList
+                style={styles(theme).container}
+                data={[]}
+                keyExtractor={() => "key"}
+                renderItem={null}
+                ListHeaderComponent={
+                    <>{children}</>
+                }
+            />
+        )
+    }
+
+    const headerMyPDUComponent = () => {
+        return (
+            <>
+                <View style={styles(theme).headerList}>
+                    <Text style={styles(theme).headerTitle}>My PDUs</Text>
+                    <View style={{flexDirection: 'row'}}>
+                        <Ripple onPress={addItem}>
+                            <MaterialIcons name='add' size={28} color={theme.COLORS.APPBAR_BLUE} />
+                        </Ripple>
+                        {/* <Ripple>
+                            <RenewIcon width="24" height="24" fill={theme.COLORS.APPBAR_BLUE} />
+                        </Ripple> */}
+                    </View>
+                </View>
+                <View style={styles(theme).border} />
+            </>
+        );
+    }
+
+    const headerNetworkComponent = () => {
+        return (
+        <>
+            <View style={styles(theme).headerList}>
+                <Text style={styles(theme).headerTitle}>PDUs found on Network</Text>
+                <Ripple>
+                    <RenewIcon width="24" height="24" fill={theme.COLORS.APPBAR_BLUE} />
+                </Ripple>
+            </View>
+            <View style={styles(theme).border} />
+        </>
+        );
+    }
 
     return (
-        <View style={styles(theme).container}>
-           {/*  <View style={styles(theme).tabs}>
-                <Tab
-                    setTab={onTabChange}
-                    title="My PDUs"
+        <VirtualizedList>
+            <View style={styles(theme).container}>
+            {/*  <View style={styles(theme).tabs}>
+                    <Tab
+                        setTab={onTabChange}
+                        title="My PDUs"
+                    />
+                    <Tab
+                        setTab={onTabChange}
+                        title="PDUs"
+                    />
+                </View> */}
+                <FlatList
+                    style={{
+                        marginTop: 5,
+                    }}
+                    data={pduList}
+                    keyExtractor={(item, index) => `${index}`}
+                    renderItem={PDUItem}
+                    ItemSeparatorComponent={() => <View style={{height: 1}} />}
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={headerMyPDUComponent}
                 />
-                <Tab
-                    setTab={onTabChange}
-                    title="PDUs"
+                {/** network devices */}
+                <FlatList
+                    style={{
+                        marginTop: 30,
+                    }}
+                    data={pduList}
+                    keyExtractor={(item, index) => `${index}`}
+                    renderItem={PDUNetworkItem}
+                    ItemSeparatorComponent={() => <View style={styles(theme).border} />}
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={headerNetworkComponent}
                 />
-            </View> */}
-            <FlatList
-                style={{
-                    marginTop: 20,
-                }}
-                data={pduList}
-                keyExtractor={(item, index) => `${index}`}
-                renderItem={PDUItem}
-                ItemSeparatorComponent={() => <View style={{height: 20}} />}
-                showsVerticalScrollIndicator={false}
-            />
-        </View>
+               
+            </View>
+            <PDUEditModal {...modalSettings} closeModal={closeModal} />
+        </VirtualizedList>
     );
 }
 
 const styles = theme => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.App_COLOR_3,
-        paddingHorizontal: 20,
+        backgroundColor: theme.COLORS.APP_BG,
+    },
+    headerList: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 18,
+        paddingHorizontal: 18,
+        backgroundColor: theme.COLORS.APP_BG_PANEL,
+    },
+
+    border: {
+        width: '100%',
+        height: 1,
+        backgroundColor: theme.COLORS.APP_BG,
+    },
+
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: theme.COLORS.BLACK,
     },
     itemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-        borderRadius: 12,
+        borderRadius: 0,
+        backgroundColor: theme.COLORS.APP_BG_PANEL,
         borderColor: theme.COLORS.BORDER_ITEM,
-        borderWidth: 1,
+        borderWidth: 0,
         paddingVertical: 18,
         paddingHorizontal: 18,
     },
     item_title: {
         width: '50%',
         textAlign: 'center',
+
     },
     item_title_text: {
         fontSize: 16,
-        color: theme.COLORS.WHITE,
+        color: theme.COLORS.BLACK,
+    },
+    item_property_text: {
+        fontSize: 14,
+        color: theme.COLORS.APP_GREY
+
     },
     tabs: {
         flexDirection: 'row',
