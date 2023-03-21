@@ -14,6 +14,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import { useNavigation } from '@react-navigation/native';
 import { useStateValue } from '../services/State/State';
+import { VirtualizedList } from '../components/VirtualizedList';
+import { usePDUSocket } from '../services/PDUSocketProvider';
+import { OnlineStatus } from '../components/OnlineStatus';
 const test_pdu_data = [
     {
         IP: '192.168.1.100',
@@ -56,6 +59,12 @@ const test_pdu_button_data = [
 const Dashboard = (props) => {
     const {theme} = useContext(ThemeContext);
     const [{pduListSettings}, dispatch] = useStateValue();
+
+    const {
+
+    } = usePDUSocket();
+
+
     const {pduList=[]} = pduListSettings;
 
     //const [pduList, setPduList] = useState(test_pdu_data);
@@ -73,7 +82,7 @@ const Dashboard = (props) => {
         const isActive = status === 'active';
         const itemName = `Output_${index}`;
         return (
-            <View
+            <Ripple
                 style={styles(theme).itemContainer}
             >
                 <View
@@ -137,7 +146,7 @@ const Dashboard = (props) => {
                     
                 </Ripple>
                 </LinearGradient>
-            </View>
+            </Ripple>
         );
     }
 
@@ -193,51 +202,93 @@ const Dashboard = (props) => {
         );
     }
 
-    const navigateToDeviceInfo = () => {
-        navigation.navigate("DeviceInfo");
+    const navigateToDeviceInfo = (host, port) => {
+        console.log(host, port);
+        navigation.navigate("DeviceInfo", {
+            host: host,
+            port: port
+        });
     }
 
     const RenderPDU = ({item, index}) => {
-        console.log(item);
+        const isSelected = selectedDevice &&(item.ID === selectedDevice.ID);
+
         return (
-            <View style={styles(theme).pdu_panel}>
-                <View>
-                    <Text style={styles(theme).pdu_title}>{item.PDUName}</Text>
-                    <Text style={styles(theme).pdu_title}>{'PDU STATS'}</Text>
+            <Ripple
+                style={isSelected ? styles(theme).pdu_container_selected : styles(theme).pdu_container}
+                onPress={() => {setSelectedDevice(item)}}
+            >
+                <View style={styles(theme).pdu_panel}>
+                    <View>
+                        <Text style={styles(theme).pdu_title}>{item.PDUName}</Text>
+                        <Text style={styles(theme).pdu_desc}>{`${item.host}:${item.port}`}</Text>
+                    </View>
+                    <View style={{marginLeft: 20}}>
+                        <OnlineStatus />
+                    </View>
                 </View>
-                <View>
+                {/* <View>
                     <Ripple
-                        onPress={() => navigateToDeviceInfo()}
+                        onPress={() => navigateToDeviceInfo(item.host, item.port)}
                     >
-                        <MaterialIcons name='info-outline' size={24} color={'white'} />
+                        <MaterialIcons name='info-outline' size={24} color={theme.COLORS.APPBAR_BLUE} />
                     </Ripple>
-                </View>
-            </View>
+                </View> */}
+               <Ripple
+                    onPress={() => navigateToDeviceInfo(item.host, item.port)}
+                    //onPress={() => {setSelectedDevice(item)}}
+                    style={styles(theme).btn_select_container}
+                >
+                    <Text style={styles(theme).btn}>{'Details'}</Text>
+                </Ripple>
+            </Ripple>
+            
         );
     }
 
     const onScrollEnd = (e) => {
-        let pageNumber = Math.min(Math.max(Math.floor(e.nativeEvent.contentOffset.x / Dimensions.get('screen').width), 0), pduList.length);
-        console.log(pageNumber); 
+        //let pageNumber = Math.min(Math.max(Math.floor(e.nativeEvent.contentOffset.x / Dimensions.get('screen').width), 0), pduList.length);
+        //console.log(pageNumber); 
+    }
+
+    const HeaderPDUList = (props) => {
+        return (
+            <>
+                <View style={styles(theme).headerList}>
+                    <Text style={styles(theme).headerTitle}>PDUs</Text>
+                {/*  <Ripple>
+                        <RenewIcon width="24" height="24" fill={theme.COLORS.APPBAR_BLUE} />
+                    </Ripple> */}
+                </View>
+            </>
+        );
     }
 
 
     return (
-        <View style={styles(theme).container}>
-            <FlatList
-                onMomentumScrollEnd={onScrollEnd}
-                horizontal
-                pagingEnabled={true}
-                showsHorizontalScrollIndicator={false}
-                legacyImplementation={false}
-                data={pduList}
-                renderItem={RenderPDU}
-                keyExtractor={(item, index) => `pdu_${index}`}
-                style={{
-                    width: '100%',         
-                    height: 250,
-                }}
-            />
+        <VirtualizedList style={styles(theme).container}>
+            
+            <View style={styles(theme).main_panel}>
+                <HeaderPDUList />
+                <View style={styles(theme).border} />
+                <FlatList
+                    onMomentumScrollEnd={onScrollEnd}
+                    horizontal
+                    //pagingEnabled={true}
+                    showsHorizontalScrollIndicator={false}
+                    legacyImplementation={false}
+                    data={pduList}
+                    renderItem={RenderPDU}
+                    keyExtractor={(item, index) => `pdu_${index}`}
+                    ItemSeparatorComponent={() => <View style={{width: 5}} />}
+                    style={{
+                        paddingVertical: 20,
+                        marginHorizontal: 20,
+                        minHeight: 160,
+                    }}
+                />
+            </View>
+            
            {/*  <SelectBox
                 options={pduList}
                 value={selectedDevice}
@@ -245,9 +296,8 @@ const Dashboard = (props) => {
             /> */}
             <FlatList
                 style={{
-                    marginTop: 10,
-                    marginBottom: 10,
-                    paddingHorizontal: 20,
+                    marginTop: 5,
+                    marginBottom: 5,
                 }}
                 data={pduButtonList}
                 keyExtractor={(item, index) => `${index}`}
@@ -255,7 +305,7 @@ const Dashboard = (props) => {
                 ItemSeparatorComponent={() => <View style={{height: 2}} />}
                 showsVerticalScrollIndicator={false}
             />
-        </View>
+        </VirtualizedList>
     );
 }
 
@@ -263,40 +313,64 @@ const styles = theme => StyleSheet.create({
     container: {
         flex: 1,
         width: '100%',
-        paddingTop: 20,
         backgroundColor: theme.COLORS.APP_BG,
     },
+    list_container: {
+    },
+    main_panel: {
+        marginTop: 5,
+        backgroundColor: theme.COLORS.WHITE,
+        //backgroundColor: theme.COLORS.APP_BG_PANEL,
+
+    },
+    pdu_container: {
+        width: 200,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderColor: theme.COLORS.BORDER_ITEM,
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 20,
+    },
+
+    pdu_container_selected: {
+        width: 200,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderColor: theme.COLORS.APPBAR_BLUE,
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 20,
+    },
+
     pdu_panel: {
         //backgroundColor: theme.COLORS.DARK_BLUE_80P,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderRadius: 12,
         borderColor: theme.COLORS.BORDER_ITEM,
         borderWidth: 0,
-        padding: 20,
+        borderRadius: 8,
         minHeight: 160,
-        backgroundColor: theme.COLORS.APP_BG_PANEL,
-        marginHorizontal: 20,
-        width: Dimensions.get('screen').width - 40,
-
-
+        marginHorizontal: 5,
     },
     pdu_place_holder: {
         fontSize: 15,
 
     },
     pdu_title: {
-        fontWeight: '700',
+        fontWeight: '500',
         fontSize: 16,
         fontFamily: fontFamilies.Rogan,
         color: theme.dark? theme.COLORS.WHITE: theme.COLORS.BLACK,
+    },
+    pdu_desc: {
+
     },
     itemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
-        borderRadius: 12,
         borderColor: theme.COLORS.BORDER_ITEM,
         borderWidth: 0,
         paddingVertical: 18,
@@ -313,13 +387,14 @@ const styles = theme => StyleSheet.create({
         color: theme.dark? theme.COLORS.WHITE: theme.COLORS.BLACK,
     },
     item_btn_container: {
+        height: '100%',
         padding: 10,
+        borderRadius: 20,
     },
     border: {
         height: 1,
         width: '100%',
-        marginBottom: 3,
-        backgroundColor: theme.COLORS.WHITE,
+        backgroundColor: theme.COLORS.APP_BG,
     },
     btn_container: {
         width: 75,
@@ -360,6 +435,33 @@ const styles = theme => StyleSheet.create({
     menuOption: {
     //    width: '100%'
     },
+    headerList: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 18,
+        paddingHorizontal: 18,
+        backgroundColor: theme.COLORS.APP_BG_PANEL,
+    },
+
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: theme.COLORS.BLACK,
+    },
+    btn_select_container: {
+        borderWidth: 1,
+        borderRadius: 8,
+        borderColor: theme.COLORS.APPBAR_BLUE,
+        width: '60%'
+
+    },
+    btn: {
+        color: theme.COLORS.APPBAR_BLUE,
+        textAlign: 'center',
+        fontSize: 16,
+        paddingVertical: 5,
+
+    }
 });
 
 export default Dashboard;
