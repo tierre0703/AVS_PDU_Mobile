@@ -7,6 +7,7 @@ import {
     TextInput,
     StyleSheet,
     Alert,
+    ScrollView,
 } from 'react-native';
 import { useStateValue } from '../services/State/State';
 import { fontFamilies } from '../utils/FontFamilies';
@@ -28,7 +29,8 @@ const PDUEditModal = (props) => {
         type='add', //add | edit
         item={},
         index = 0,
-        closeModal = ()=>{}
+        closeModal = ()=>{},
+        onSave = () => {}
     } = props || {};
 
 
@@ -91,6 +93,8 @@ const PDUEditModal = (props) => {
                     autoload: autoload
                 }]
             };
+
+           //onSave(saveData);
 
             await savePDUSettings(saveData);
 
@@ -242,68 +246,69 @@ const PDUEditModal = (props) => {
             <View style={styles(theme).container}>
                 <View style={styles(theme).overlay}>
                     <View style={styles(theme).panel}>
-                        <Text style={styles(theme).header}>{type === 'add' ? 'Add PDU' : 'Edit PDU'}</Text>
-                        <View
-                            style={styles(theme).body}
-                        >
-                            <InputBox
-                                title={'Host'}
-                                value={host}
-                                placeholder={'Enter PDU IP'}
-                                keyboardType={'email-address'}
-                                saveValue={(text)=>{
-                                    setHost(text);
-                                }}
-                            />
-                            <InputBox
-                                title={'Port'}
-                                value={port}
-                                placeholder={'Enter PDU Port'}
-                                keyboardType={'default'}
-                                saveValue={(text)=>{
-                                    setPort(text);
-                                }}
-                            />
-                            <InputBox
-                                title={'PDU Name'}
-                                value={PDUName}
-                                placeholder={'Enter PDU Name'}
-                                keyboardType={'default'}
-                                saveValue={(text)=>{
-                                    setPDUName(text);
-                                }}
-                            />
+                        <ScrollView>
+                            <Text style={styles(theme).header}>{type === 'add' ? 'Add PDU' : 'Edit PDU'}</Text>
+                            <View
+                                style={styles(theme).body}
+                            >
+                                <InputBox
+                                    title={'Host'}
+                                    value={host}
+                                    placeholder={'Enter PDU IP'}
+                                    keyboardType={'email-address'}
+                                    saveValue={(text)=>{
+                                        setHost(text);
+                                    }}
+                                />
+                                <InputBox
+                                    title={'Port'}
+                                    value={port}
+                                    placeholder={'Enter PDU Port'}
+                                    keyboardType={'default'}
+                                    saveValue={(text)=>{
+                                        setPort(text);
+                                    }}
+                                />
+                                <InputBox
+                                    title={'PDU Name'}
+                                    value={PDUName}
+                                    placeholder={'Enter PDU Name'}
+                                    keyboardType={'default'}
+                                    saveValue={(text)=>{
+                                        setPDUName(text);
+                                    }}
+                                />
 
-                            <View style={styles(theme).radioButtonContainer}>
-                                <RadioButton checked={autoload} onCheckChange={
-                                    ()=>{
-                                        console.log(autoload);
-                                        setAutoload(!autoload)
-                                    }
-                                } />
-                                <Text
-                                    style={styles(theme).radioButtonText}
-                                >
-                                {'Auto Connect to PDU when application start'}
-                                </Text>
+                                <View style={styles(theme).radioButtonContainer}>
+                                    <RadioButton checked={autoload} onCheckChange={
+                                        ()=>{
+                                            console.log(autoload);
+                                            setAutoload(!autoload)
+                                        }
+                                    } />
+                                    <Text
+                                        style={styles(theme).radioButtonText}
+                                    >
+                                    {'Auto Connect to PDU when application start'}
+                                    </Text>
+                                </View>
+
+                            <Ripple
+                                style={styles(theme).btn_container}
+                                onPress={saveProc}
+                            >
+                                <Text style={styles(theme).btn}>{'Save'}</Text>
+                            </Ripple>
+                            <Ripple
+                                style={styles(theme).btn_container_cancel}
+                                onPress={closeModal}
+                            >
+                                <Text style={styles(theme).btn_cancel}>{'Cancel'}</Text>
+                            </Ripple>
+
                             </View>
-
-
-
-                        </View>
-
-                        <Ripple
-                            style={styles(theme).btn_container}
-                            onPress={saveProc}
-                        >
-                            <Text style={styles(theme).btn}>{'Save'}</Text>
-                        </Ripple>
-                        <Ripple
-                            style={styles(theme).btn_container_cancel}
-                            onPress={closeModal}
-                        >
-                            <Text style={styles(theme).btn_cancel}>{'Cancel'}</Text>
-                        </Ripple>
+                        </ScrollView>
+                        
 
                     </View>
                 </View>
@@ -330,7 +335,7 @@ const styles = theme => StyleSheet.create({
         backgroundColor: theme.dark ? theme.COLORS.DARK_BLUE_80P: '#000000D0',
 
 
-        paddingHorizontal: 60,
+        paddingHorizontal: 30,
     },
     panel: {
         //flex: 1,
@@ -339,12 +344,12 @@ const styles = theme => StyleSheet.create({
         width: '100%',
         borderRadius: 8,
         paddingVertical: 50,
-        paddingHorizontal: 30,
+        paddingHorizontal: 0,
         backgroundColor: theme.dark? theme.COLORS.DEFAULT_LIGHTBLUE: theme.COLORS.WHITE,
     },
     header: {
-        color: theme.COLORS.WHITE,
-        fontSize: 22,
+        color: theme.COLORS.BLACK,
+        fontSize: 16,
         fontWeight: '700',
         fontFamily: fontFamilies.Rogan
     },
@@ -386,7 +391,7 @@ const styles = theme => StyleSheet.create({
     },
 
     radioButtonContainer: {
-        paddingTop: 40,
+        paddingVertical: 20,
         flexDirection: 'row',
         alignItems: 'center'
     },

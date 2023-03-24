@@ -15,7 +15,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useStateValue } from '../services/State/State';
 import { VirtualizedList } from '../components/VirtualizedList';
-import { usePDUSocket } from '../services/PDUSocketProvider';
+import { usePDUSocketContext } from '../services/PDUSocketProvider';
 import { OnlineStatus } from '../components/OnlineStatus';
 const test_pdu_data = [
     {
@@ -62,7 +62,7 @@ const Dashboard = (props) => {
 
     const {
 
-    } = usePDUSocket();
+    } = usePDUSocketContext();
 
 
     const {pduList=[]} = pduListSettings;

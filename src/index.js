@@ -322,12 +322,12 @@ const RootStack = () => {
                           title: i18n.t('Dashboard'),
                           // isTransparent: true,
                           // showLanguageDropdown: true,
-                          showRightButton:false,
+                          /* showRightButton:false,
                           //rightButtonIcon:<DrawerToggleButton tintColor='white' />,
                           rightButtonIcon: <DevicesIcon width="24" height="24" fill="white" />,
                           rightButtonOnPress: ()=>{
-                            navigation.navigate('Devices');
-                          },
+                            //navigation.push('Devices');
+                          }, */
                           selectedLanguage: language,
                           dispatch,
                           languageOptions,
@@ -349,7 +349,7 @@ const RootStack = () => {
                   navigation,);
                 }}
               />  
-              <Stack.Screen
+              {/* <Stack.Screen
                 name="Devices"
                 component={PDUList}
                 options={({navigation}) => {
@@ -373,7 +373,7 @@ const RootStack = () => {
                     },
                     navigation,);
                   }}
-                />  
+                />   */}
             </Stack.Navigator>
         );
     };
@@ -406,6 +406,18 @@ const RootStack = () => {
                       unmountOnBlur: true,
                       tabBarButton: (props) => (
                           <TabComponent label="Dashboard" {...props} />
+                      ),
+                    }}
+                />
+                <Tab.Screen
+                    name="DevicesPage"
+                    //component={DrawerNavigator}
+                    component={DevicesStack}
+                    options={{
+                      headerShown: false,
+                      unmountOnBlur: true,
+                      tabBarButton: (props) => (
+                          <TabComponent label="Devices" {...props} />
                       ),
                     }}
                 />

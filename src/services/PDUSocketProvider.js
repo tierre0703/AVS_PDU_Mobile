@@ -33,7 +33,7 @@ const initialinfo = {
 
 const PDUSocketContext = createContext();
 
-export const usePDUSocket = () => useContext(PDUSocketContext);
+export const usePDUSocketContext = () => useContext(PDUSocketContext);
 
 export const PDUSocketProvider = ({children}) => {
   const [pduClients, setPduClients] = useState([]);
@@ -73,7 +73,7 @@ export const PDUSocketProvider = ({children}) => {
 
     client.on('data', data => {
       // received data
-      
+      console.log(data);
 
       var KEY = '';
       var VALUE = '';

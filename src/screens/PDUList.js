@@ -14,6 +14,7 @@ import { actions } from '../services/State/Reducer';
 import { savePDUSettings } from '../services/DataManager';
 import RenewIcon from '../assets/ico_renew.svg';
 import PDUEditModal from '../components/PDUEditModal';
+import { useDiscoveryServerContext } from '../services/PDUServerProvider';
 const test_pdu_list = [
     {
         IP: '192.168.1.100',
@@ -41,7 +42,18 @@ const test_pdu_list = [
 const PDUList = (props) => {
     const navigation = useNavigation();
     const [{pduListSettings}, dispatch] = useStateValue();
+    const discoveryContext = useDiscoveryServerContext();
+    const {
+        discoveredPDUs,
+        requestDiscoverPDUs,
+        localNetworkAddresses
+    } = useDiscoveryServerContext();
+
     const [modalSettings, setModalSettings] = useState({show: false});
+
+    useEffect(()=>{
+        console.log(discoveredPDUs);
+    }, [discoveredPDUs]);
 
     const {
         nextId = 0,
@@ -218,7 +230,11 @@ const PDUList = (props) => {
         <>
             <View style={styles(theme).headerList}>
                 <Text style={styles(theme).headerTitle}>PDUs found on Network</Text>
-                <Ripple>
+                <Ripple onPress={
+                    ()=>{
+                        requestDiscoverPDUs(localNetworkAddresses);
+                    }
+                }>
                     <RenewIcon width="24" height="24" fill={theme.COLORS.APPBAR_BLUE} />
                 </Ripple>
             </View>
@@ -256,7 +272,7 @@ const PDUList = (props) => {
                     style={{
                         marginTop: 30,
                     }}
-                    data={pduList}
+                    data={discoveredPDUs}
                     keyExtractor={(item, index) => `${index}`}
                     renderItem={PDUNetworkItem}
                     ItemSeparatorComponent={() => <View style={styles(theme).border} />}
