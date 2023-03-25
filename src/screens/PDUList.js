@@ -82,7 +82,7 @@ const PDUList = (props) => {
 
                         const filtered_list = pduList.filter(ele=>ele.ID !== item.ID);
                         const saveData = {
-                            nextId: pduList.nextId,
+                            nextId: nextId,
                             pduList: filtered_list
                         };
 
@@ -106,7 +106,13 @@ const PDUList = (props) => {
     }
 
     const editItem = async (item, index) => {
-        dispatch({
+        setModalSettings({
+            show: true,
+            type: 'edit',
+            item: item,
+            index: index,
+    });
+/*         dispatch({
             type: actions.SET_MODALSETTING,
             modalSetting: {
                 show: true,
@@ -115,7 +121,7 @@ const PDUList = (props) => {
                 index: index,
             }
         });
-
+ */
     }
 
     const closeModal = () => {
@@ -152,6 +158,30 @@ const PDUList = (props) => {
         );
     }
 
+    const addToList = async (item, index) => {
+        const id = nextId;
+        const saveData = {
+            nextId: nextId + 1,
+            pduList: [...pduList,  {
+                ID: id,
+                PDUName: item.PDUName,
+                port: item.port,
+                host: item.host,
+                autoload: true
+            }]
+        };
+
+        await savePDUSettings(saveData);
+        dispatch({
+            type: actions.SET_PDULIST,
+            pduListSettings: saveData,
+        });
+    }
+
+    const filterDiscoveredList = (items) => {
+        return items.filter(ele=> pduList.findIndex(ele2=>ele2.host === ele.host) === -1)
+    }
+
     
     const PDUNetworkItem = ({item, index}) => {
 
@@ -163,7 +193,10 @@ const PDUList = (props) => {
                 </View>
                 <Text style={styles(theme).item_title_text}>{item.Autoload}</Text>
                 <View>
-                    <Ripple
+                    <Ripple onPress={()=>addToList(item, index)} style={styles(theme).textBtn}>
+                        <Text>{'Add to list'}</Text>
+                    </Ripple>
+                   {/*  <Ripple
                         onPress={() => editItem(item, index)}
                     >
                         <EditIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
@@ -175,7 +208,7 @@ const PDUList = (props) => {
                         onPress={() => deleteItem(item, index)}
                     >
                         <DeleteIcon width={32} height={32} fill={theme.COLORS.APP_GREY} />
-                    </Ripple>
+                    </Ripple> */}
                 </View>
             </Ripple>
         );
@@ -272,7 +305,7 @@ const PDUList = (props) => {
                     style={{
                         marginTop: 30,
                     }}
-                    data={discoveredPDUs}
+                    data={filterDiscoveredList(discoveredPDUs)}
                     keyExtractor={(item, index) => `${index}`}
                     renderItem={PDUNetworkItem}
                     ItemSeparatorComponent={() => <View style={styles(theme).border} />}
@@ -339,6 +372,14 @@ const styles = theme => StyleSheet.create({
     tabs: {
         flexDirection: 'row',
         justifyContent: 'center',
+    },
+
+    textBtn: {
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: theme.COLORS.APPBAR_BLUE,
+        paddingVertical: 10,
+        paddingHorizontal: 10
     }
 });
 

@@ -48,7 +48,7 @@ export const PDUServerProvider = ({children}) => {
                 //socket.send(message, REMOTE_PORT, ip, 
                     (err) => {
                     if(err){
-                        console.error(`Error sending message: ${err}`);
+                        console.log(`Error sending message: ${err}`);
                     }else{
                        console.log(`Sent message to ${ip}:${REMOTE_PORT}`);
                     }
@@ -138,6 +138,7 @@ export const PDUServerProvider = ({children}) => {
             // Handle incoming data from the client
             //GUID:24d9b67e-f38d-11ea-adc1-0242ac120002\nVER:1.6\nPORT:5005\nSN:02c0018115a3a72d\nNAME:Soleux PDU\n
             socket.on('data', (data) => {
+                console.log(`data received ${data.toString()} ${socket.remoteAddress}` );
                 const host = socket.remoteAddress;
                 
                 var Version, GUID, port, PDUName, SN, Verified = '';

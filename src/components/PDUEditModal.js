@@ -86,7 +86,7 @@ const PDUEditModal = (props) => {
             const saveData = {
                 nextId: nextId + 1,
                 pduList: [...pduList, {
-                    ID: nextId + 1,
+                    ID: nextId,
                     PDUName: PDUName,
                     port: port,
                     host: host,

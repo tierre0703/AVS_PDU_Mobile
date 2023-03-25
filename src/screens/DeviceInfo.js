@@ -35,6 +35,7 @@ import { useStateValue } from '../services/State/State';
 import Ripple from '../components/Ripple';
 import { FlatList } from 'react-native-gesture-handler';
 import { VirtualizedList } from '../components/VirtualizedList';
+import { usePDUSocketContext } from '../services/PDUSocketProvider';
 
 const test_device_info = [
     {title: 'Name', value:'Soleux PDU'},
@@ -72,6 +73,12 @@ const DeviceInfo = (props) =>{
         host='192.168.1.204',
         port= 12345,
     } = route.params;
+
+    const {
+        PDUInfo
+    } = usePDUSocketContext();
+
+
         
     const test_device_info_icons = {
         "Name": (<NameIcon width={24} height={24} fill={theme.COLORS.APP_GREY} />),
@@ -115,6 +122,9 @@ const DeviceInfo = (props) =>{
         RELAY_COUNT,
         CHAME_OUT,
     } = test_device_info;
+
+    useEffect(()=>{
+    }, []);
 
 
  

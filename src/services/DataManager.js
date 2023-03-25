@@ -27,6 +27,8 @@ export const savePDUSettings = async (pdu_list) => {
 export const getPDUSettings = async () => {
     try {
         const response = await AsyncStorage.getItem(KEYS.PDU_LIST);
+        //savePDUSettings(initialState.pduListSettings);
+
         if(response){
             return JSON.parse(response);
         }
@@ -79,3 +81,5 @@ export const getLanguage = async () => {
     return 'en';
     }
 };
+
+

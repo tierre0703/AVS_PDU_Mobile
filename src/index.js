@@ -111,7 +111,7 @@ const RootStack = () => {
           ? () => <Image source={Logo} style={styles(theme).logo}  resizeMode={'contain'} />
           //<Logo style={styles(theme).logo} />: <Logo style={styles(theme).logo} />
           : null,
-        headerRight: rightButtonIcon ? () => (
+        headerRight: (showRightButton && rightButtonIcon) ? () => (
               <Ripple onPress={()=>rightButtonOnPress(navigation)} style={styles(theme).rightButtonOuter}>
                 {rightButtonIcon}
               </Ripple>
@@ -225,7 +225,7 @@ const RootStack = () => {
                 {
                     title: i18n.t('Devices'),
                     dispatch,
-                    showRightButton: true,
+                    showRightButton: false,
                     rightButtonIcon: (<MaterialIcons name='add' size={24} color={'white'} />),
                     rightButtonOnPress: ()=>{
                       dispatch({

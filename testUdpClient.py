@@ -5,7 +5,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Specify the IP address and port number of the server to send messages to
 #server_address = ('0.0.0.0', 8001)
-client_address = ('localhost', 8000)
+client_address = ('10.100.100.87', 8000)
 #sock.bind(server_address)
 
 # Send a message to the server

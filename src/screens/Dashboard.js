@@ -61,8 +61,10 @@ const Dashboard = (props) => {
     const [{pduListSettings}, dispatch] = useStateValue();
 
     const {
-
+        PDUInfo
     } = usePDUSocketContext();
+
+    
 
 
     const {pduList=[]} = pduListSettings;

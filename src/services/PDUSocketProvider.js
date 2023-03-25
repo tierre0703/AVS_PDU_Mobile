@@ -39,12 +39,13 @@ export const PDUSocketProvider = ({children}) => {
   const [pduClients, setPduClients] = useState([]);
   const [PDUInfo, setPDUInfo] = useState([]);
   const [{pduListSettings}, dispatch] = useStateValue();
-  console.log(pduListSettings);
 
   const {pduList=[]} = pduListSettings;
 
   const findPDU = (host, port) => {
-    return pduClients.find(client => client.host === host);
+    return pduClients.findIndex(client => client.host === host) > -1 ? 
+    pduClients.find(client => client.host === host) : null
+    ;
   }
 
   const sendCommand = (client, data) => {
@@ -58,6 +59,7 @@ export const PDUSocketProvider = ({children}) => {
   }
 
   const connectPDU = (host, port) => {
+    console.log(connectPDU);
     const options = {
       host: host,
       port: port,
@@ -66,21 +68,29 @@ export const PDUSocketProvider = ({children}) => {
       return;
     }
 
+    console.log(host, port);
+
     const client = TcpSocket.createConnection(
       options,
-      ()=>{}
+      ()=>{
+        console.log('client created');
+        updateStatPDU(client);
+      }
     );
+    console.log(client);
 
     client.on('data', data => {
       // received data
-      console.log(data);
+      // console.log(data.toString());
 
       var KEY = '';
       var VALUE = '';
 
+      var relay_info = [];
+
 
       if(data){
-        const tokens = data.split('\r\n');
+        const tokens = data.toString().split('\r\n');
         tokens.forEach(token => {
           KEY = '';
           if(token.indexOf('SN:') > -1){
@@ -137,34 +147,48 @@ export const PDUSocketProvider = ({children}) => {
           }else if(token.indexOf('RELAY_COUNT:') > -1){
             KEY = 'RELAY_COUNT';
             VALUE = extractData(token, 'RELAY_COUNT:');
+            console.log(data.toString());
+            console.log('-----');
           }else if(token.indexOf('CHNAME_OUT:') > -1){
+            console.log(data.toString());
+            console.log('-----');
             KEY = 'CHNAME_OUT';
             VALUE = extractData(token, 'CHNAME_OUT:');
           }else if(token.indexOf('CHNAME_IN:') > -1){
+            console.log(data.toString());
+            console.log('-----');
             KEY = 'CHNAME_IN';
             VALUE = extractData(token, 'CHNAME_IN:');
           }else if(token.indexOf('SCHEDULE_START:') > -1){
+            console.log(data.toString());
+            console.log('-----');
             KEY = 'SCHEDULE_START';
             VALUE = extractData(token, 'SCHEDULE_START:');
           }else if(token.indexOf('SCHEDULE_END:') > -1){
             KEY = 'SCHEDULE_END';
+            console.log('-----');
+            console.log(data.toString());
             VALUE = extractData(token, 'SCHEDULE_END:');
           }else if(token.indexOf('SCHEDULE_RUNONES:') > -1){
+            console.log(data.toString());
+            console.log('-----');
             KEY = 'SCHEDULE_RUNONES';
             VALUE = extractData(token, 'SCHEDULE_RUNONES:');
           }
 
+
           if(KEY){
-            setPDUInfo(prevPDUInfo=>{
-              const pdu = prevPDUInfo[host] || {
+            /* setPDUInfo(prevPDUInfo=>{
+              const updatedData = {...prevPDUInfo};
+              const pdu = updatedData[host] || {
                 ...initialinfo,
                 HOST: host,
                 PORT: port,
               }
               pdu[KEY] = VALUE;
-              prevPDUInfo[host] = pdu;
-              return prevPDUInfo;
-            });
+              updatedData[host] = pdu;
+              return updatedData;
+            }); */
           }
 
         });
@@ -181,7 +205,7 @@ export const PDUSocketProvider = ({children}) => {
 
     })
 
-    setSocketClients(prevClients => [...prevClients, {host: host, client: client}]);
+    setPduClients(prevClients => [...prevClients, {host: host, client: client}]);
   }
 
   const disconnectPDU = clientObj => {
@@ -197,10 +221,10 @@ export const PDUSocketProvider = ({children}) => {
     }
   }
 
-  const updateStatPDU = clientObj => {
-    if(clientObj){
-      sendCommand(clientObj.client, 'AT+CHNAMES\r');
-      sendCommand(clientObj.client, 'AT+OUTSTAT\r');
+  const updateStatPDU = client => {
+    if(client){
+      sendCommand(client, 'AT+CHNAMES\r');
+      sendCommand(client, 'AT+OUTSTAT\r');
     }
   }
 
@@ -227,6 +251,7 @@ export const PDUSocketProvider = ({children}) => {
     findPDU, 
     pduClients,
     PDUInfo,
+    updateStatPDU,
   };
 
   useEffect(()=>{
@@ -246,9 +271,9 @@ export const PDUSocketProvider = ({children}) => {
   }
 
   useEffect(()=>{
-    //initSockets();
+    initSockets();
 
-  }, []);
+  }, [pduList]);
 
   return (
     <PDUSocketContext.Provider value={contextValue}>
