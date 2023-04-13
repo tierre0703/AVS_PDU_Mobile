@@ -29,6 +29,7 @@ const initialinfo = {
   SCHEDULE_START: '',
   SCHEDULE_END: '',
   SCHEDULE_RUNONES: '',
+  Verified: false,
 };
 
 const PDUSocketContext = createContext();
@@ -55,7 +56,8 @@ export const PDUSocketProvider = ({children}) => {
   }
 
   const extractData = (token, key) => {
-    return token.replace(key, '');
+    //return token.replace(key, '');
+    return token.substring(token.indexOf(key) + key.length);
   }
 
   const connectPDU = (host, port) => {
@@ -77,8 +79,8 @@ export const PDUSocketProvider = ({children}) => {
         updateStatPDU(client);
       }
     );
-    console.log(client);
-
+    // Read line data
+    client.setEncoding('utf8'); // Set encoding to utf8
     client.on('data', data => {
       // received data
       // console.log(data.toString());
@@ -89,96 +91,152 @@ export const PDUSocketProvider = ({children}) => {
       var relay_info = [];
 
 
+      var responseData = {};
+
+
       if(data){
         const tokens = data.toString().split('\r\n');
         tokens.forEach(token => {
           KEY = '';
-          if(token.indexOf('SN:') > -1){
-            KEY = 'SN';
-            VALUE = extractData(token, 'SN:');
+          if(token.indexOf('DEVICE:') > -1) {
+            responseData['DEVICE'] =  extractData(token, 'DEVICE:');
+          }else if(token.indexOf('SN:') > -1){
+            responseData['SN'] = extractData(token, 'SN:');
           }else if(token.indexOf('LANMAC:') > -1) {
-            KEY = 'LANMAC';
-            VALUE = extractData(token, 'LANMAC:');
+            responseData['LANMAC'] = extractData(token, 'LANMAC:');
           }else if(token.indexOf('WIFIMAC:') > -1){
-            KEY = 'WIFIMAC';
-            VALUE = extractData(token, 'WIFIMAC:');
+            responseData['WIFIMAC'] = extractData(token, 'WIFIMAC:');
           }else if(token.indexOf('APP_NAME:') > -1){
-            KEY = 'APP_NAME';
-            VALUE = extractData(token, 'APP_NAME:');
+            responseData['APP_NAME'] = extractData(token, 'APP_NAME:');
           }else if(token.indexOf('VER:') > -1){
-            KEY = 'VER';
-            VALUE = extractData(token, 'VER:');
+            responseData['VER'] = extractData(token, 'VER:');
           }else if(token.indexOf('RELEASE_DATE:') > -1){
-            KEY = 'RELEASE_DATE';
-            VALUE = extractData(token, 'RELEASE_DATE:');
+            responseData['RELEASE_DATE'] = extractData(token, 'RELEASE_DATE:');
           }else if(token.indexOf('TEMP:') > -1){
-            KEY = 'TEMP';
-            VALUE = extractData(token, 'TEMP:');
+            responseData['TEMP'] = extractData(token, 'TEMP:');
           }else if(token.indexOf('CPUTEMP:') > -1){
-            KEY = 'CPUTEMP';
-            VALUE = extractData(token, 'CPUTEMP:');
+            responseData['CPUTEMP'] = extractData(token, 'CPUTEMP:');
           }else if(token.indexOf('SYSTIME:') > -1){
-            KEY = 'SYSTIME';
-            VALUE = extractData(token, 'SYSTIME:');
+            responseData['SYSTIME'] = extractData(token, 'SYSTIME:');
           }else if(token.indexOf('UPTIME:') > -1){
-            KEY = 'UPTIME';
-            VALUE = extractData(token, 'UPTIME:');
+            responseData['UPTIME'] = extractData(token, 'UPTIME:');
           }else if(token.indexOf('FAN_STATUS:') > -1){
-            KEY = 'FAN_STATUS';
-            VALUE = extractData(token, 'FAN_STATUS:');
+            responseData['FAN_STATUS'] = extractData(token, 'FAN_STATUS:');
           }else if(token.indexOf('FAN_MODE:') > -1){
-            KEY = 'FAN_MODE';
-            VALUE = extractData(token, 'FAN_MODE:');
+            responseData['FAN_MODE'] = extractData(token, 'FAN_MODE:');
           }else if(token.indexOf('FAN_HIGH_TEMP:') > -1){
-            KEY = 'FAN_HIGH_TEMP';
-            VALUE = extractData(token, 'FAN_HIGH_TEMP:');
+            responseData['FAN_HIGH_TEMP'] = extractData(token, 'FAN_HIGH_TEMP:');
           }else if(token.indexOf('FAN_LOW_TEMP:') > -1){
-            KEY = 'FAN_LOW_TEMP';
-            VALUE = extractData(token, 'FAN_LOW_TEMP:');
+            responseData['FAN_LOW_TEMP'] = extractData(token, 'FAN_LOW_TEMP:');
           }else if(token.indexOf('LANIP:') > -1){
-            KEY = 'LANIP';
-            VALUE = extractData(token, 'LANIP:');
+            responseData['LANIP'] = extractData(token, 'LANIP:');
           }else if(token.indexOf('WIFIIP:') > -1){
-            KEY = 'WIFIIP';
-            VALUE = extractData(token, 'WIFIIP:');
+            responseData['WIFIIP'] = extractData(token, 'WIFIIP:');
           }else if(token.indexOf('WIFISSID:') > -1){
-            KEY = 'WIFISSID';
-            VALUE = extractData(token, 'WIFISSID:');
+            responseData['WIFISSID'] = extractData(token, 'WIFISSID:');
           }else if(token.indexOf('RELAY_COUNT:') > -1){
-            KEY = 'RELAY_COUNT';
-            VALUE = extractData(token, 'RELAY_COUNT:');
-            console.log(data.toString());
-            console.log('-----');
+            const relay_count_str =  extractData(token, 'RELAY_COUNT:');
+            const relay_count = Number(relay_count_str);
+            responseData['RELAY_COUNT'] = relay_count;
+            responseData['RELAY_IN'] = Array(relay_count).fill('OFF');
+            responseData['RELAY_OUT'] = Array(relay_count).fill('ON');
+          }else if(token.indexOf('IN:') === 0){
+            const relayTokens = token.split(':');
+            if(relayTokens.length == 3){
+              const relayIndex = Number(relayTokens[1]);
+              const relayStatus = relayTokens[2];
+              responseData['RELAY_IN'][relayIndex] = relayStatus;
+            }
+          }else if(token.indexOf('OUT:') === 0){
+            const relayTokens = token.split(':');
+            if(relayTokens.length == 3){
+              const relayIndex = Number(relayTokens[1]);
+              const relayStatus = relayTokens[2];
+              responseData['RELAY_OUT'][relayIndex] = relayStatus;
+            }
           }else if(token.indexOf('CHNAME_OUT:') > -1){
-            console.log(data.toString());
-            console.log('-----');
-            KEY = 'CHNAME_OUT';
-            VALUE = extractData(token, 'CHNAME_OUT:');
+            const chnameOutTokens = token.split(':');
+            if(chnameOutTokens.length == 3){
+              const chnameIndex = Number(chnameOutTokens[1]);
+              const chname = chnameOutTokens[2];
+              responseData['CHNAME_OUT'][chnameIndex] = chname;
+            }
           }else if(token.indexOf('CHNAME_IN:') > -1){
-            console.log(data.toString());
-            console.log('-----');
-            KEY = 'CHNAME_IN';
-            VALUE = extractData(token, 'CHNAME_IN:');
+            const chnameInTokens = token.split(':');
+            if(chnameInTokens.length == 3){
+              const chnameIndex = Number(chnameInTokens[1]);
+              const chname = chnameInTokens[2];
+              responseData['CHNAME_IN'][chnameIndex] = chname;
+            }
           }else if(token.indexOf('SCHEDULE_START:') > -1){
-            console.log(data.toString());
-            console.log('-----');
-            KEY = 'SCHEDULE_START';
-            VALUE = extractData(token, 'SCHEDULE_START:');
-          }else if(token.indexOf('SCHEDULE_END:') > -1){
-            KEY = 'SCHEDULE_END';
-            console.log('-----');
-            console.log(data.toString());
-            VALUE = extractData(token, 'SCHEDULE_END:');
-          }else if(token.indexOf('SCHEDULE_RUNONES:') > -1){
-            console.log(data.toString());
-            console.log('-----');
-            KEY = 'SCHEDULE_RUNONES';
-            VALUE = extractData(token, 'SCHEDULE_RUNONES:');
+            const schedule_tokens = token.split('\n');
+            let schedule_relay_index = 0;
+            let schedule_begin = false;
+
+            schedule_tokens.forEach(schedule_token=>{
+              if(schedule_token.indexOf('SCHEDULE_START:') > -1){
+                //schedule start
+                const schedule_relay_index_str = extractData(schedule_token, 'SHCEDULE_START:');
+                schedule_relay_index = Number(schedule_relay_index_str);
+                schedule_begin = true;
+              }else if(schedule_token.indexOf('SCHEDULE_RUNONES') > -1){
+                const str = extractData(schedule_token, 'SCHEDULE_RUNONES:');
+                const runones_tokens = str.split(',');
+                const runones = {};
+                runones_tokens.forEach(runones_token => {
+                  if(runones_token.indexOf('ID:') > -1){
+                    runones['ID'] = extractData(runones_token, 'ID:');
+                  }else if(runones_token.indexOf('RELAY:') > -1){
+                    runones['RELAY'] = extractData(runones_token, 'RELAY:');
+                  }else if(runones_token.indexOf('DATETIME:') > -1){
+                    runones['DATETIME'] = extractData(runones_token, 'DATETIME:');
+                  }else if(runones_token.indexOf('ACTION:') > -1){
+                    runones['ACTION'] = extractData(runones_token, 'ACTION:');
+                  }else if(runones_token.indexOf('PROCESSED:') > -1){
+                    runones['PROCESSED'] = extractData(runones_token, 'PROCESSED:');
+                  }
+                });
+              }else if(schedule_token.indexOf('SCHEDULE_WEEKLY:') > -1){
+                const str = extractData(schedule_token, 'SCHEDULE_WEEKLY:');
+                const runones_tokens = str.split(',');
+                const runweekly = {};
+                runones_tokens.forEach(runones_token => {
+                  if(runones_token.indexOf('ID:') > -1){
+                    runweekly['ID'] = extractData(runones_token, 'ID:');
+                  }else if(runones_token.indexOf('RELAY:') > -1){
+                    runweekly['RELAY'] = extractData(runones_token, 'RELAY:');
+                  }else if(runones_token.indexOf('DATETIME:') > -1){
+                    runweekly['DATETIME'] = extractData(runones_token, 'DATETIME:');
+                  }else if(runones_token.indexOf('ACTION:') > -1){
+                    runweekly['ACTION'] = extractData(runones_token, 'ACTION:');
+                  }else if(runones_token.indexOf('MON:') > -1){
+                    runweekly['MON'] = extractData(runones_token, 'MON:');
+                  }else if(runones_token.indexOf('TUE:') > -1){
+                    runweekly['TUE'] = extractData(runones_token, 'TUE:');
+                  }else if(runones_token.indexOf('WED:') > -1){
+                    runweekly['WED'] = extractData(runones_token, 'WED:');
+                  }else if(runones_token.indexOf('THU:') > -1){
+                    runweekly['THU'] = extractData(runones_token, 'THU:');
+                  }else if(runones_token.indexOf('FRI:') > -1){
+                    runweekly['FRI'] = extractData(runones_token, 'FRI:');
+                  }else if(runones_token.indexOf('SAT:') > -1){
+                    runweekly['SAT'] = extractData(runones_token, 'SAT:');
+                  }else if(runones_token.indexOf('SUN:') > -1){
+                    runweekly['SUN'] = extractData(runones_token, 'SUN:');
+                  }
+                });
+
+              }else if(schedule_token.indexOf('SCHEDULE_END:') > -1){
+                schedule_begin = false;
+              }
+
+            });
           }
+          /*
 
 
           if(KEY){
-            /* setPDUInfo(prevPDUInfo=>{
+            setPDUInfo(prevPDUInfo=>{
               const updatedData = {...prevPDUInfo};
               const pdu = updatedData[host] || {
                 ...initialinfo,
@@ -188,8 +246,10 @@ export const PDUSocketProvider = ({children}) => {
               pdu[KEY] = VALUE;
               updatedData[host] = pdu;
               return updatedData;
-            }); */
-          }
+            });
+          } */
+
+          console.log('response: ', responseData);
 
         });
       }
